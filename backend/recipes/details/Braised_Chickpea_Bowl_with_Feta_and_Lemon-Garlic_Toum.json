@@ -1,0 +1,72 @@
+{
+  "recipe": {
+    "name": "Braised Chickpea Bowl with Feta and Lemon-Garlic Toum",
+    "type": "Veggie",
+    "prep_time": "30 Minutes",
+    "ingredients": {
+      "Chickpeas": "740 ml",
+      "Indian Spice Mix": {
+        "amount": "1 tbsp",
+        "double_amount": "2 tbsp"
+      },
+      "Onion, chopped": {
+        "amount": "56g",
+        "double_amount": "113g"
+      },
+      "Garlic": {
+        "amount": "6g",
+        "double_amount": "12g"
+      },
+      "Sweet Bell Pepper": {
+        "amount": "160g",
+        "double_amount": "320g"
+      },
+      "Feta Cheese": {
+        "amount": "100g",
+        "double_amount": "200g"
+      },
+      "Vegetable Broth Concentrate": "",
+      "Tomato Sauce": {
+        "amount": "2 tbsp",
+        "double_amount": "4 tbsp"
+      },
+      "Baby Spinach": {
+        "amount": "113g",
+        "double_amount": "227g"
+      },
+      "Lemon": "1",
+      "Mayonnaise": {
+        "amount": "2 tbsp",
+        "double_amount": "4 tbsp"
+      },
+      "Oil": "Pantry item",
+      "Salt and Pepper": "Pantry items"
+    },
+    "instructions": [
+      {
+        "step_number": 1,
+        "description": "Before starting, wash and dry all produce."
+      },
+      {
+        "step_number": 2,
+        "description": "Cook freekeh by combining it with 1 broth concentrate (2 for 4 ppl) and 1.5 cups water (dbl for 4 ppl) in a medium pot. Cover and bring to a boil over high heat, then reduce heat to low. Simmer, still covered, until freekeh is tender and liquid is absorbed, 22-25 min."
+      },
+      {
+        "step_number": 3,
+        "description": "While the freekeh cooks, cut the pepper into 1/2-inch cubes. Roughly chop the spinach. Zest, then juice half the lemon (whole lemon for 4 ppl). Peel, then mince or grate the garlic. Drain and rinse the chickpeas."
+      },
+      {
+        "step_number": 4,
+        "description": "Heat a large non-stick pan with oil over medium heat. Add onions and peppers, cook until softened, 3-4 min. Add chickpeas, Indian Spice Mix, tomato sauce, 1 cup water, and half the garlic. Simmer until slightly reduced, 6-7 min. Remove from heat. Season with salt and pepper."
+      },
+      {
+        "step_number": 5,
+        "description": "While the chickpeas braise, mix the mayo, lemon zest, 1 tbsp lemon juice (dbl for 4 ppl), and 1/2 tsp garlic together in a small bowl to make lemon-garlic toum. Season with salt and pepper."
+      },
+      {
+        "step_number": 6,
+        "description": "Stir the spinach into the chickpea braise until wilted, 1-2 min. Season the freekeh with salt. Divide the freekeh between bowls, top with the chickpea braise, crumble over the feta, and drizzle the lemon-garlic toum over top."
+      }
+    ]
+  }
+}
