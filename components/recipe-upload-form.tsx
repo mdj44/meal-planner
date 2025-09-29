@@ -51,6 +51,9 @@ export function RecipeUploadForm({ onRecipeUploaded }: RecipeUploadFormProps) {
 
       setSuccess("Recipe uploaded and parsed successfully!")
       onRecipeUploaded?.(data.recipe)
+
+      const forms = document.querySelectorAll("form")
+      forms.forEach((form) => form.reset())
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
@@ -184,6 +187,11 @@ export function RecipeUploadForm({ onRecipeUploaded }: RecipeUploadFormProps) {
         {error && (
           <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
             <p className="text-sm text-destructive">{error}</p>
+            {error.includes("storage bucket") && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Tip: Make sure you've run the storage setup script from the scripts folder.
+              </p>
+            )}
           </div>
         )}
 

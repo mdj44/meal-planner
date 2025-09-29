@@ -31,6 +31,7 @@ import { RecipeUploadForm } from "@/components/recipe-upload-form"
 import { createClient } from "@/lib/supabase/client"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 import type { Recipe, GroceryList } from "@/lib/types"
+import { TestRecipeButton } from "@/components/test-recipe-button"
 
 interface Profile {
   id: string
@@ -58,6 +59,11 @@ export function DashboardContent({ user, profile, initialRecipes, initialGrocery
   const handleRecipeUploaded = (newRecipe: Recipe) => {
     setRecipes((prev) => [newRecipe, ...prev])
     setShowUploadForm(false)
+  }
+
+  const handleRecipeAdded = () => {
+    // Refresh the page to show the new recipe
+    window.location.reload()
   }
 
   const userName = profile?.full_name || user.email?.split("@")[0] || "User"
@@ -280,10 +286,13 @@ export function DashboardContent({ user, profile, initialRecipes, initialGrocery
                 <div className="text-center py-8">
                   <ChefHat className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground mb-4">No recipes yet</p>
-                  <Button onClick={() => setShowUploadForm(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Upload Your First Recipe
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <Button onClick={() => setShowUploadForm(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Upload Your First Recipe
+                    </Button>
+                    <TestRecipeButton onRecipeAdded={handleRecipeAdded} />
+                  </div>
                 </div>
               )}
             </CardContent>

@@ -70,7 +70,13 @@ export async function POST(request: NextRequest) {
         .upload(fileName, file)
 
       if (uploadError) {
-        return NextResponse.json({ error: "Failed to upload file" }, { status: 500 })
+        console.error("Storage upload error:", uploadError)
+        return NextResponse.json(
+          {
+            error: "Failed to upload file. Please make sure the storage bucket is properly configured.",
+          },
+          { status: 500 },
+        )
       }
 
       // Get public URL
@@ -129,6 +135,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ recipe })
   } catch (error) {
     console.error("Recipe upload error:", error)
+    if (error instanceof Error && error.message.includes("model")) {
+      return NextResponse.json(
+        {
+          error: "AI service temporarily unavailable. Please try again later.",
+        },
+        { status: 503 },
+      )
+    }
     return NextResponse.json({ error: "Failed to process recipe" }, { status: 500 })
   }
 }

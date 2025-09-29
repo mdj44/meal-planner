@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { ChefHat, Clock, Users, Search, Plus, ArrowLeft } from "lucide-react"
 import { RecipeUploadForm } from "@/components/recipe-upload-form"
 import { RecipeToGroceryList } from "@/components/recipe-to-grocery-list"
+import { TestRecipeButton } from "@/components/test-recipe-button"
 import type { Recipe } from "@/lib/types"
 
 interface RecipesPageContentProps {
@@ -23,6 +24,11 @@ export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) 
   const handleRecipeUploaded = (newRecipe: Recipe) => {
     setRecipes((prev) => [newRecipe, ...prev])
     setShowUploadForm(false)
+  }
+
+  const handleRecipeAdded = () => {
+    // Refresh the page to show the new recipe
+    window.location.reload()
   }
 
   const filteredRecipes = recipes.filter((recipe) => recipe.title.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -47,6 +53,7 @@ export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) 
             </div>
             <div className="flex items-center gap-4">
               <RecipeToGroceryList recipes={recipes} />
+              <TestRecipeButton onRecipeAdded={handleRecipeAdded} />
               <Button onClick={() => setShowUploadForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Upload Recipe
@@ -152,10 +159,13 @@ export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) 
                 : "Upload your first recipe to get started with meal planning"}
             </p>
             {!searchTerm && (
-              <Button onClick={() => setShowUploadForm(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Upload Your First Recipe
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <Button onClick={() => setShowUploadForm(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Upload Your First Recipe
+                </Button>
+                <TestRecipeButton onRecipeAdded={handleRecipeAdded} />
+              </div>
             )}
           </div>
         )}
