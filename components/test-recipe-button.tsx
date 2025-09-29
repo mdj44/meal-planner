@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { TestTube, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface TestRecipeButtonProps {
@@ -51,8 +50,7 @@ export function TestRecipeButton({ onRecipeAdded }: TestRecipeButtonProps) {
       size="sm"
       className="flex items-center gap-2 bg-transparent"
     >
-      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <TestTube className="h-4 w-4" />}
-      Add Test Recipe
+      {isLoading ? "Loading..." : "Add Test Recipe"}
     </Button>
   )
 }
