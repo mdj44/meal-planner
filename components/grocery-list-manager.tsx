@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, ShoppingCart, Trash2, MapPin } from "lucide-react"
+import { Plus, ShoppingCart, Trash2, MapPin, RefreshCw } from "lucide-react"
 import type { GroceryList, GroceryItem } from "@/lib/types"
 
 interface GroceryListManagerProps {
@@ -23,6 +23,7 @@ export function GroceryListManager({ initialLists = [] }: GroceryListManagerProp
   const [newItemUnit, setNewItemUnit] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isClassifying, setIsClassifying] = useState<string | null>(null)
+  const [isRecomputing, setIsRecomputing] = useState(false)
 
   useEffect(() => {
     fetchGroceryLists()
@@ -108,6 +109,29 @@ export function GroceryListManager({ initialLists = [] }: GroceryListManagerProp
     } finally {
       setIsLoading(false)
       setIsClassifying(null)
+    }
+  }
+
+  const recomputeGroceryList = async (listId: string) => {
+    setIsRecomputing(true)
+    try {
+      const response = await fetch(`/api/grocery-lists/${listId}/recompute`, {
+        method: "POST",
+      })
+
+      if (response.ok) {
+        const { count } = await response.json()
+        await fetchGroceryLists()
+        alert(`Successfully refreshed ${count} items from recipes!`)
+      } else {
+        const error = await response.json()
+        alert(`Failed to refresh list: ${error.error}`)
+      }
+    } catch (error) {
+      console.error("Failed to recompute list:", error)
+      alert("Failed to refresh list. Please try again.")
+    } finally {
+      setIsRecomputing(false)
     }
   }
 
@@ -199,8 +223,22 @@ export function GroceryListManager({ initialLists = [] }: GroceryListManagerProp
       {selectedListData && (
         <Card>
           <CardHeader>
-            <CardTitle>{selectedListData.name}</CardTitle>
-            <CardDescription>Manage items in your grocery list</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>{selectedListData.name}</CardTitle>
+                <CardDescription>Manage items in your grocery list</CardDescription>
+              </div>
+              {selectedListData.recipe_ids && selectedListData.recipe_ids.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={() => recomputeGroceryList(selectedListData.id)}
+                  disabled={isRecomputing}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isRecomputing ? "animate-spin" : ""}`} />
+                  {isRecomputing ? "Refreshing..." : "Refresh from Recipes"}
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Add New Item */}

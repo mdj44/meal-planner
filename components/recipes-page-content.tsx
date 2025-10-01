@@ -6,7 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { ChefHat, Clock, Users, Search, Plus, ArrowLeft } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { ChefHat, Clock, Users, Search, Plus, ArrowLeft, Wand2 } from "lucide-react"
 import { RecipeUploadForm } from "@/components/recipe-upload-form"
 import { RecipeToGroceryList } from "@/components/recipe-to-grocery-list"
 import { TestRecipeButton } from "@/components/test-recipe-button"
@@ -20,6 +29,9 @@ export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) 
   const [recipes, setRecipes] = useState(initialRecipes)
   const [searchTerm, setSearchTerm] = useState("")
   const [showUploadForm, setShowUploadForm] = useState(false)
+  const [modifyDialogOpen, setModifyDialogOpen] = useState<string | null>(null)
+  const [modifyPrompt, setModifyPrompt] = useState("")
+  const [isModifying, setIsModifying] = useState(false)
 
   const handleRecipeUploaded = (newRecipe: Recipe) => {
     setRecipes((prev) => [newRecipe, ...prev])
@@ -29,6 +41,37 @@ export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) 
   const handleRecipeAdded = () => {
     // Refresh the page to show the new recipe
     window.location.reload()
+  }
+
+  const handleModifyRecipe = async (recipeId: string) => {
+    if (!modifyPrompt.trim()) return
+
+    setIsModifying(true)
+    try {
+      const response = await fetch(`/api/recipes/${recipeId}/modify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: modifyPrompt }),
+      })
+
+      if (response.ok) {
+        const { recipe: updatedRecipe } = await response.json()
+        // Update the recipe in local state
+        setRecipes((prev) => prev.map((r) => (r.id === recipeId ? updatedRecipe : r)))
+        setModifyDialogOpen(null)
+        setModifyPrompt("")
+        // Show success feedback
+        alert("Recipe modified successfully!")
+      } else {
+        const error = await response.json()
+        alert(`Failed to modify recipe: ${error.error}`)
+      }
+    } catch (error) {
+      console.error("Failed to modify recipe:", error)
+      alert("Failed to modify recipe. Please try again.")
+    } finally {
+      setIsModifying(false)
+    }
   }
 
   const filteredRecipes = recipes.filter((recipe) => recipe.title.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -141,9 +184,53 @@ export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) 
                   </div>
                   <div className="flex items-center justify-between">
                     <Badge variant="outline">{recipe.ingredients.length} ingredients</Badge>
-                    <Button variant="outline" size="sm">
-                      View Recipe
-                    </Button>
+                    <div className="flex gap-2">
+                      <Dialog
+                        open={modifyDialogOpen === recipe.id}
+                        onOpenChange={(open) => setModifyDialogOpen(open ? recipe.id : null)}
+                      >
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Wand2 className="h-3 w-3 mr-1" />
+                            Modify
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Modify Recipe with AI</DialogTitle>
+                            <DialogDescription>Describe how you'd like to modify "{recipe.title}"</DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <Textarea
+                              placeholder="e.g., make it vegan, double the servings, add more spice..."
+                              value={modifyPrompt}
+                              onChange={(e) => setModifyPrompt(e.target.value)}
+                              rows={4}
+                            />
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setModifyDialogOpen(null)
+                                  setModifyPrompt("")
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                onClick={() => handleModifyRecipe(recipe.id)}
+                                disabled={isModifying || !modifyPrompt.trim()}
+                              >
+                                {isModifying ? "Modifying..." : "Modify Recipe"}
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                      <Button variant="outline" size="sm">
+                        View Recipe
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
