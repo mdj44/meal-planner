@@ -6,6 +6,43 @@ import { combineQuantities } from "@/lib/quantity-utils"
 const groceryListCache = new Map<string, { data: any; timestamp: number }>()
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
+// Basic ingredient classification for fallback
+const BASIC_INGREDIENTS: Record<string, string> = {
+  'pita bread': 'bakery',
+  'white rice': 'pantry',
+  'brown rice': 'pantry',
+  'olive oil': 'pantry',
+  'salt': 'pantry',
+  'black pepper': 'pantry',
+  'pepper': 'pantry',
+  'garlic': 'produce',
+  'onion': 'produce',
+  'tomato': 'produce',
+  'tomatoes': 'produce',
+  'baby tomatoes': 'produce',
+  'chicken breast': 'meat',
+  'ground beef': 'meat',
+  'milk': 'dairy',
+  'eggs': 'dairy',
+  'butter': 'dairy',
+  'cheese': 'dairy',
+  'feta cheese': 'dairy',
+  'parsley': 'produce',
+  'bell pepper': 'produce',
+  'sweet bell pepper': 'produce',
+  'olives': 'produce',
+  'mixed olives': 'produce',
+  'chickpeas': 'pantry',
+  'white wine vinegar': 'pantry',
+  'sugar': 'pantry',
+  'oil': 'pantry'
+}
+
+function classifyIngredientBasic(name: string): string {
+  const normalizedName = name.toLowerCase().trim()
+  return BASIC_INGREDIENTS[normalizedName] || 'unclassified'
+}
+
 // Function to normalize ingredient names for combining
 function normalizeIngredientName(name: string): string {
   return name
@@ -241,16 +278,20 @@ export async function POST(request: NextRequest) {
             groceryList = await generateGroceryListWithOpenAI(recipeData, store_preferences, custom_name)
           } catch (aiError) {
             console.log("AI generation failed, creating fallback grocery list:", aiError)
-            // Create a fallback grocery list without AI
+            // Create a fallback grocery list without AI, but with basic classification
             groceryList = {
               list_name: custom_name || "Recipe List",
-              items: combinedIngredients.map(ingredient => ({
-                name: ingredient.name,
-                quantity: ingredient.combinedQuantity,
-                unit: ingredient.combinedUnit,
-                category: "unclassified", // Will be classified by our system
-                notes: ingredient.usageCount > 1 ? `*${ingredient.usageCount} uses` : ""
-              })),
+              items: combinedIngredients.map(ingredient => {
+                // Use basic classification for fallback
+                const category = classifyIngredientBasic(ingredient.name)
+                return {
+                  name: ingredient.name,
+                  quantity: ingredient.combinedQuantity,
+                  unit: ingredient.combinedUnit,
+                  category: category,
+                  notes: ingredient.usageCount > 1 ? `*${ingredient.usageCount} uses` : ""
+                }
+              }),
               total_estimated_cost: 0,
               store_sections: []
             }
