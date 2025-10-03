@@ -14,31 +14,17 @@ export default async function GroceryListsPage() {
     redirect("/auth/login")
   }
 
-  // Fetch user's grocery lists, recipes, and profile with performance optimizations
-  const [{ data: groceryLists }, { data: recipes }, { data: profile }] = await Promise.all([
-    supabase
-      .from("grocery_lists")
-      .select(`*, grocery_items(*)`)
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(20), // Limit for performance
-    supabase
-      .from("recipes")
-      .select("id, title, created_at") // Only fetch needed fields
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(50),
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single()
-  ])
+  // Only fetch profile for header - lists will load client-side
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single()
 
   return (
     <div className="min-h-screen bg-gray-50">
       <AppHeader user={user} profile={profile} />
-      <GroceryListsPageContent initialLists={groceryLists || []} recipes={recipes || []} />
+      <GroceryListsPageContent initialLists={[]} recipes={[]} />
     </div>
   )
 }

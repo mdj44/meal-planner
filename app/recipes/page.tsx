@@ -14,25 +14,17 @@ export default async function RecipesPage() {
     redirect("/auth/login")
   }
 
-  // Fetch user's recipes and profile with caching
-  const [{ data: recipes }, { data: profile }] = await Promise.all([
-    supabase
-      .from("recipes")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(50), // Limit for performance
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single()
-  ])
+  // Only fetch profile for header - recipes will load client-side
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single()
 
   return (
     <div className="min-h-screen bg-gray-50">
       <AppHeader user={user} profile={profile} />
-      <RecipesPageContent initialRecipes={recipes || []} />
+      <RecipesPageContent initialRecipes={[]} />
     </div>
   )
 }

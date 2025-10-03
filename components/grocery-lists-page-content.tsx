@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -55,6 +56,7 @@ const STORE_SECTIONS = [
 
 export function GroceryListsPageContent({ initialLists, recipes }: GroceryListsPageContentProps) {
   const [groceryLists, setGroceryLists] = useState(initialLists)
+  const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedLists, setSelectedLists] = useState<Set<string>>(new Set())
   const [isSelectionMode, setIsSelectionMode] = useState(false)
@@ -64,6 +66,46 @@ export function GroceryListsPageContent({ initialLists, recipes }: GroceryListsP
   const [addItemDialogOpen, setAddItemDialogOpen] = useState<string | null>(null)
   const [newItemName, setNewItemName] = useState("")
   const [newItemQuantity, setNewItemQuantity] = useState("")
+
+  // Fetch data client-side for instant page loads
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (user) {
+          const [{ data: listsData }, { data: recipesData }] = await Promise.all([
+            supabase
+              .from("grocery_lists")
+              .select(`*, grocery_items(*)`)
+              .eq("user_id", user.id)
+              .order("created_at", { ascending: false })
+              .limit(20),
+            supabase
+              .from("recipes")
+              .select("id, title, created_at")
+              .eq("user_id", user.id)
+              .order("created_at", { ascending: false })
+              .limit(50)
+          ])
+          
+          setGroceryLists(listsData || [])
+        }
+      } catch (error) {
+        console.error("Failed to fetch data:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    // Only fetch if we don't have initial data
+    if (initialLists.length === 0) {
+      fetchData()
+    } else {
+      setIsLoading(false)
+    }
+  }, [initialLists.length])
   const [newItemUnit, setNewItemUnit] = useState("")
   const [newItemCategory, setNewItemCategory] = useState("")
   const [sortedBy, setSortedBy] = useState<"name" | "category" | "created">("created")
@@ -459,7 +501,29 @@ export function GroceryListsPageContent({ initialLists, recipes }: GroceryListsP
         </div>
 
         {/* Grocery Lists Grid */}
-        {sortedLists.length > 0 ? (
+        {isLoading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="overflow-hidden">
+                <CardHeader>
+                  <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse mb-2"></div>
+                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 w-4/6 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <div className="h-8 flex-1 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-8 flex-1 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : sortedLists.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedLists.map((list) => (
               <Card 

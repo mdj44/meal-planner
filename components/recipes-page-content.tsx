@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -27,6 +28,7 @@ interface RecipesPageContentProps {
 
 export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) {
   const [recipes, setRecipes] = useState(initialRecipes)
+  const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [showUploadForm, setShowUploadForm] = useState(false)
   const [modifyDialogOpen, setModifyDialogOpen] = useState<string | null>(null)
@@ -43,6 +45,38 @@ export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) 
   const [groceryListDialogOpen, setGroceryListDialogOpen] = useState(false)
   const [groceryListName, setGroceryListName] = useState("")
   const [isCreatingGroceryList, setIsCreatingGroceryList] = useState(false)
+
+  // Fetch recipes client-side for instant page loads
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (user) {
+          const { data: recipesData } = await supabase
+            .from("recipes")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+            .limit(50)
+          
+          setRecipes(recipesData || [])
+        }
+      } catch (error) {
+        console.error("Failed to fetch recipes:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    // Only fetch if we don't have initial recipes (for instant loads)
+    if (initialRecipes.length === 0) {
+      fetchRecipes()
+    } else {
+      setIsLoading(false)
+    }
+  }, [initialRecipes.length])
 
   const handleRecipeUploaded = (newRecipe: Recipe) => {
     setRecipes((prev) => [newRecipe, ...prev])
@@ -320,7 +354,25 @@ export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) 
         </div>
 
         {/* Recipes Grid */}
-        {filteredRecipes.length > 0 ? (
+        {isLoading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Card key={i} className="overflow-hidden">
+                <div className="h-40 bg-gray-200 animate-pulse"></div>
+                <CardHeader>
+                  <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse mb-2"></div>
+                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : filteredRecipes.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRecipes.map((recipe) => (
               <Card 
