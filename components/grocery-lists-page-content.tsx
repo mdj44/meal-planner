@@ -31,7 +31,6 @@ import {
 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { GroceryList, GroceryItem, Recipe } from "@/lib/types"
-import { StoreMapWithList } from "@/components/store-map-with-list"
 
 interface GroceryListsPageContentProps {
   initialLists: (GroceryList & { grocery_items: GroceryItem[] })[]
@@ -62,7 +61,6 @@ export function GroceryListsPageContent({ initialLists, recipes }: GroceryListsP
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState<string | null>(null)
-  const [mapDialogOpen, setMapDialogOpen] = useState<string | null>(null)
   const [addItemDialogOpen, setAddItemDialogOpen] = useState<string | null>(null)
   const [newItemName, setNewItemName] = useState("")
   const [newItemQuantity, setNewItemQuantity] = useState("")
@@ -534,26 +532,12 @@ export function GroceryListsPageContent({ initialLists, recipes }: GroceryListsP
                           <ShoppingCart className="h-3 w-3 mr-1" />
                           Shop
                         </Button>
-                        <Dialog
-                          open={mapDialogOpen === list.id}
-                          onOpenChange={(open) => setMapDialogOpen(open ? list.id : null)}
-                        >
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="flex-1">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              Map
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle>Store Map: {list.name}</DialogTitle>
-                              <DialogDescription>
-                                See your grocery items mapped to store locations
-                              </DialogDescription>
-                            </DialogHeader>
-                            <StoreMapWithList items={list.grocery_items || []} />
-                          </DialogContent>
-                        </Dialog>
+                        <Link href={`/grocery-lists/${list.id}/map`}>
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            Map
+                          </Button>
+                        </Link>
                         <Dialog
                           open={editDialogOpen === list.id}
                           onOpenChange={(open) => setEditDialogOpen(open ? list.id : null)}
