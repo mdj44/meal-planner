@@ -16,8 +16,13 @@ export interface Recipe {
   cook_time?: number
   servings?: number
   image_url?: string
+  image_urls?: string[]
   source_url?: string
   raw_content?: string
+  original_recipe_id?: string
+  version_number?: number
+  modification_prompt?: string
+  is_modified?: boolean
   created_at: string
   updated_at: string
 }

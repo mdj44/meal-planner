@@ -1,0 +1,73 @@
+-- Offline-first schema stubs (DO NOT MIGRATE YET - FOR REFERENCE ONLY)
+-- These tables will be added in future migrations to support offline functionality
+
+-- Canonical ingredient catalog with embeddings and metadata
+-- CREATE TABLE ingredient_catalog (
+--   id bigserial primary key,
+--   normalized_name text not null unique,
+--   display_name text,
+--   dept text,
+--   zone text,
+--   confidence numeric,
+--   source text default 'llm',
+--   embedding_i8 bytea, -- Int8 quantized embeddings
+--   synonyms text[], -- Array of synonym names
+--   store_id text, -- Store-specific mapping
+--   chain_id text, -- Chain-specific mapping
+--   created_at timestamptz default now(),
+--   updated_at timestamptz default now()
+-- );
+
+-- One-to-many synonyms table for flexible synonym management
+-- CREATE TABLE synonyms (
+--   id bigserial primary key,
+--   ingredient_id bigint references ingredient_catalog(id) on delete cascade,
+--   synonym text not null,
+--   created_at timestamptz default now()
+-- );
+
+-- Department and zone lookup with precedence (store > chain > global)
+-- CREATE TABLE dept_zone_lookup (
+--   id bigserial primary key,
+--   ingredient_id bigint references ingredient_catalog(id) on delete cascade,
+--   store_id text, -- NULL for global, specific store ID for store-specific
+--   chain_id text, -- NULL for global, chain ID for chain-specific
+--   dept text not null,
+--   zone text,
+--   confidence numeric,
+--   source text default 'crowd', -- manual, crowd, vector, llm
+--   created_at timestamptz default now(),
+--   updated_at timestamptz default now(),
+--   unique(ingredient_id, store_id, chain_id)
+-- );
+
+-- Device-submitted contributions queued for processing
+-- CREATE TABLE contributions (
+--   id bigserial primary key,
+--   user_id uuid references auth.users,
+--   device_id text, -- For offline device identification
+--   normalized_name text not null,
+--   display_name text,
+--   dept text,
+--   zone text,
+--   confidence numeric,
+--   store_id text,
+--   chain_id text,
+--   source text default 'manual', -- manual, crowd, vector, llm
+--   created_at timestamptz default now(),
+--   processed boolean default false,
+--   processed_at timestamptz,
+--   conflict_resolution text -- How conflicts were resolved
+-- );
+
+-- Full-text search index for ingredient names and synonyms
+-- CREATE INDEX idx_ingredient_catalog_fts ON ingredient_catalog 
+-- USING gin(to_tsvector('english', normalized_name || ' ' || coalesce(display_name, '') || ' ' || array_to_string(synonyms, ' ')));
+
+-- Index for efficient lookups by store and chain
+-- CREATE INDEX idx_dept_zone_lookup_store ON dept_zone_lookup(store_id) WHERE store_id IS NOT NULL;
+-- CREATE INDEX idx_dept_zone_lookup_chain ON dept_zone_lookup(chain_id) WHERE chain_id IS NOT NULL;
+-- CREATE INDEX idx_dept_zone_lookup_global ON dept_zone_lookup(ingredient_id) WHERE store_id IS NULL AND chain_id IS NULL;
+
+-- Index for processing contributions
+-- CREATE INDEX idx_contributions_unprocessed ON contributions(processed, created_at) WHERE processed = false;
