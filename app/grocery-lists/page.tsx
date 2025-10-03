@@ -14,14 +14,20 @@ export default async function GroceryListsPage() {
     redirect("/auth/login")
   }
 
-  // Fetch user's grocery lists, recipes, and profile
+  // Fetch user's grocery lists, recipes, and profile with performance optimizations
   const [{ data: groceryLists }, { data: recipes }, { data: profile }] = await Promise.all([
     supabase
       .from("grocery_lists")
       .select(`*, grocery_items(*)`)
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false }),
-    supabase.from("recipes").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(20), // Limit for performance
+    supabase
+      .from("recipes")
+      .select("id, title, created_at") // Only fetch needed fields
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50),
     supabase
       .from("profiles")
       .select("*")

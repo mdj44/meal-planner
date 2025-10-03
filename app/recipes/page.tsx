@@ -14,13 +14,14 @@ export default async function RecipesPage() {
     redirect("/auth/login")
   }
 
-  // Fetch user's recipes and profile
+  // Fetch user's recipes and profile with caching
   const [{ data: recipes }, { data: profile }] = await Promise.all([
     supabase
       .from("recipes")
       .select("*")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(50), // Limit for performance
     supabase
       .from("profiles")
       .select("*")

@@ -2,6 +2,10 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { combineQuantities } from "@/lib/quantity-utils"
 
+// Simple in-memory cache for grocery list generation
+const groceryListCache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
 // Function to normalize ingredient names for combining
 function normalizeIngredientName(name: string): string {
   return name
@@ -59,12 +63,17 @@ async function generateGroceryListWithOpenAI(recipeData: any[], storePreferences
   try {
     console.log("Calling OpenAI for grocery list generation...")
     
+    // Add timeout for better performance
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
+      signal: controller.signal,
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
@@ -113,6 +122,8 @@ ${customName ? `List name preference: ${customName}` : ''}`
         max_tokens: 2000,
       }),
     })
+
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
@@ -173,6 +184,16 @@ export async function POST(request: NextRequest) {
 
     if (!recipe_ids || !Array.isArray(recipe_ids) || recipe_ids.length === 0) {
       return NextResponse.json({ error: "Recipe IDs are required" }, { status: 400 })
+    }
+
+    // Create cache key based on recipe IDs and preferences
+    const cacheKey = JSON.stringify({ recipe_ids: recipe_ids.sort(), custom_name, store_preferences })
+    const cached = groceryListCache.get(cacheKey)
+    
+    // Check if we have a valid cached result
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      console.log("Returning cached grocery list")
+      return NextResponse.json(cached.data)
     }
 
     // Fetch recipes from database
@@ -265,13 +286,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to save grocery items" }, { status: 500 })
     }
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       grocery_list: savedList,
       items: groceryItems,
       ai_generated: groceryList,
       message: `Grocery list generated with ${groceryItems.length} items from ${recipes.length} recipes`
+    }
+
+    // Cache the result
+    groceryListCache.set(cacheKey, {
+      data: responseData,
+      timestamp: Date.now()
     })
+
+    return NextResponse.json(responseData)
 
   } catch (error) {
     console.error("Grocery list generation error:", error)
