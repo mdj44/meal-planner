@@ -247,7 +247,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to save grocery list" }, { status: 500 })
     }
 
-          // Create grocery items with usage notes for combined ingredients
+          // Get existing item positions and category positions for smart placement
+          const { data: existingItems } = await supabase
+            .from("grocery_items")
+            .select("name, position_x, position_y, store_id")
+            .not("position_x", "is", null)
+            .not("position_y", "is", null)
+
+          const { data: categoryPositions } = await supabase
+            .from("category_positions")
+            .select("*")
+
+          // Create grocery items with usage notes and smart positioning
           const groceryItems = []
           
           for (let index = 0; index < groceryList.items.length; index++) {
@@ -262,6 +273,34 @@ export async function POST(request: NextRequest) {
             const usageNote = combinedIngredient && combinedIngredient.usageCount > 1 
               ? `*${combinedIngredient.usageCount} uses`
               : ''
+
+            // Try to find existing position for this exact item name
+            const existingItem = existingItems?.find(ei => 
+              ei.name.toLowerCase() === item.name.toLowerCase()
+            )
+
+            // If no exact match, try to find category position
+            const categoryPosition = categoryPositions?.find(cp => 
+              cp.category === item.category
+            )
+
+            // Determine position and store_id
+            let position_x = null
+            let position_y = null
+            let store_id = null
+
+            if (existingItem) {
+              // Use exact item position
+              position_x = existingItem.position_x
+              position_y = existingItem.position_y
+              store_id = existingItem.store_id
+            } else if (categoryPosition) {
+              // Use category average position with slight randomization
+              const randomOffset = (Math.random() - 0.5) * 4 // ±2% variation
+              position_x = Math.max(0, Math.min(100, categoryPosition.avg_position_x + randomOffset))
+              position_y = Math.max(0, Math.min(100, categoryPosition.avg_position_y + randomOffset))
+              store_id = categoryPosition.store_id
+            }
             
             groceryItems.push({
               grocery_list_id: savedList.id,
@@ -271,9 +310,10 @@ export async function POST(request: NextRequest) {
               category: item.category,
               is_completed: false,
               notes: usageNote,
-              sort_order: index
-              // Note: Missing columns (estimated_cost) need to be added via migration
-              // Run scripts/008_fix_all_grocery_columns.sql in your Supabase dashboard
+              sort_order: index,
+              position_x,
+              position_y,
+              store_id
             })
           }
 

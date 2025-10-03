@@ -152,6 +152,42 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       ? (existingItems[0].sort_order || 0) + 1 
       : 0
 
+    // Get smart positioning data
+    const [{ data: existingItemPositions }, { data: categoryPositions }] = await Promise.all([
+      supabase
+        .from("grocery_items")
+        .select("name, position_x, position_y, store_id")
+        .eq("name", name.trim())
+        .not("position_x", "is", null)
+        .not("position_y", "is", null)
+        .limit(1),
+      supabase
+        .from("category_positions")
+        .select("*")
+        .eq("category", finalCategory || "unclassified")
+        .limit(1)
+    ])
+
+    // Determine position and store_id
+    let position_x = null
+    let position_y = null
+    let store_id = null
+
+    if (existingItemPositions && existingItemPositions.length > 0) {
+      // Use exact item position
+      const existingItem = existingItemPositions[0]
+      position_x = existingItem.position_x
+      position_y = existingItem.position_y
+      store_id = existingItem.store_id
+    } else if (categoryPositions && categoryPositions.length > 0) {
+      // Use category average position with slight randomization
+      const categoryPosition = categoryPositions[0]
+      const randomOffset = (Math.random() - 0.5) * 4 // ±2% variation
+      position_x = Math.max(0, Math.min(100, categoryPosition.avg_position_x + randomOffset))
+      position_y = Math.max(0, Math.min(100, categoryPosition.avg_position_y + randomOffset))
+      store_id = categoryPosition.store_id
+    }
+
     // Add the new item
     const { data: newItem, error: insertError } = await supabase
       .from("grocery_items")
@@ -163,7 +199,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         category: finalCategory || "unclassified",
         is_completed: false,
         sort_order: nextSortOrder,
-        notes: ""
+        notes: "",
+        position_x,
+        position_y,
+        store_id
       })
       .select()
       .single()
