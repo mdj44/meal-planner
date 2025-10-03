@@ -153,7 +153,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       : 0
 
     // Get smart positioning data
-    const [{ data: existingItemPositions }, { data: categoryPositions }] = await Promise.all([
+    const [{ data: existingItemPositions }, { data: categoryPositions }, { data: allExistingItems }] = await Promise.all([
       supabase
         .from("grocery_items")
         .select("name, position_x, position_y, store_id")
@@ -165,8 +165,23 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         .from("category_positions")
         .select("*")
         .eq("category", finalCategory || "unclassified")
-        .limit(1)
+        .limit(1),
+      supabase
+        .from("grocery_items")
+        .select("name, position_x, position_y, store_id")
+        .not("position_x", "is", null)
+        .not("position_y", "is", null)
     ])
+
+    // Look for existing items of the same category that are already positioned
+    const sameCategoryItems = allExistingItems?.filter(ei => 
+      ei.name.toLowerCase() !== name.trim().toLowerCase() && // Not the same item
+      ei.name.toLowerCase().includes((finalCategory || "unclassified").toLowerCase()) || // Category in name
+      (finalCategory === 'produce' && ['garlic', 'tomato', 'onion', 'pepper', 'lettuce'].some(prod => ei.name.toLowerCase().includes(prod))) ||
+      (finalCategory === 'pantry' && ['rice', 'pasta', 'oil', 'salt', 'sugar', 'flour'].some(pantry => ei.name.toLowerCase().includes(pantry))) ||
+      (finalCategory === 'meat' && ['chicken', 'beef', 'pork', 'fish'].some(meat => ei.name.toLowerCase().includes(meat))) ||
+      (finalCategory === 'dairy' && ['milk', 'cheese', 'butter', 'yogurt'].some(dairy => ei.name.toLowerCase().includes(dairy)))
+    )
 
     // Determine position and store_id
     let position_x = null
@@ -179,6 +194,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       position_x = existingItem.position_x
       position_y = existingItem.position_y
       store_id = existingItem.store_id
+    } else if (sameCategoryItems && sameCategoryItems.length > 0) {
+      // Use position near existing items of same category
+      const referenceItem = sameCategoryItems[0] // Use first matching item as reference
+      const randomOffset = (Math.random() - 0.5) * 6 // ±3% variation for nearby placement
+      position_x = Math.max(0, Math.min(100, referenceItem.position_x + randomOffset))
+      position_y = Math.max(0, Math.min(100, referenceItem.position_y + randomOffset))
+      store_id = referenceItem.store_id
     } else if (categoryPositions && categoryPositions.length > 0) {
       // Use category average position with slight randomization
       const categoryPosition = categoryPositions[0]

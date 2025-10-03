@@ -347,9 +347,19 @@ export async function POST(request: NextRequest) {
               ei.name.toLowerCase() === item.name.toLowerCase()
             )
 
-            // If no exact match, try to find category position
+            // If no exact match, try to find category position or nearby items of same category
             const categoryPosition = categoryPositions?.find(cp => 
               cp.category === item.category
+            )
+
+            // Look for existing items of the same category that are already positioned
+            const sameCategoryItems = existingItems?.filter(ei => 
+              ei.name.toLowerCase() !== item.name.toLowerCase() && // Not the same item
+              ei.name.toLowerCase().includes(item.category.toLowerCase()) || // Category in name
+              item.category === 'produce' && ['garlic', 'tomato', 'onion', 'pepper', 'lettuce'].some(prod => ei.name.toLowerCase().includes(prod)) ||
+              item.category === 'pantry' && ['rice', 'pasta', 'oil', 'salt', 'sugar', 'flour'].some(pantry => ei.name.toLowerCase().includes(pantry)) ||
+              item.category === 'meat' && ['chicken', 'beef', 'pork', 'fish'].some(meat => ei.name.toLowerCase().includes(meat)) ||
+              item.category === 'dairy' && ['milk', 'cheese', 'butter', 'yogurt'].some(dairy => ei.name.toLowerCase().includes(dairy))
             )
 
             // Determine position and store_id
@@ -362,6 +372,13 @@ export async function POST(request: NextRequest) {
               position_x = existingItem.position_x
               position_y = existingItem.position_y
               store_id = existingItem.store_id
+            } else if (sameCategoryItems && sameCategoryItems.length > 0) {
+              // Use position near existing items of same category
+              const referenceItem = sameCategoryItems[0] // Use first matching item as reference
+              const randomOffset = (Math.random() - 0.5) * 6 // ±3% variation for nearby placement
+              position_x = Math.max(0, Math.min(100, referenceItem.position_x + randomOffset))
+              position_y = Math.max(0, Math.min(100, referenceItem.position_y + randomOffset))
+              store_id = referenceItem.store_id
             } else if (categoryPosition) {
               // Use category average position with slight randomization
               const randomOffset = (Math.random() - 0.5) * 4 // ±2% variation
