@@ -67,14 +67,16 @@ async function generateGroceryListWithOpenAI(recipeData: any[], storePreferences
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
+    let response
+    try {
+      response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
           {
@@ -122,6 +124,13 @@ ${customName ? `List name preference: ${customName}` : ''}`
         max_tokens: 2000,
       }),
     })
+    } catch (fetchError) {
+      clearTimeout(timeoutId)
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        throw new Error("Request timed out after 10 seconds")
+      }
+      throw fetchError
+    }
 
     clearTimeout(timeoutId)
 
@@ -227,7 +236,25 @@ export async function POST(request: NextRequest) {
           console.log("Combined ingredients:", combinedIngredients)
 
           // Use AI to generate optimized grocery list with combined ingredients
-          const groceryList = await generateGroceryListWithOpenAI(recipeData, store_preferences, custom_name)
+          let groceryList
+          try {
+            groceryList = await generateGroceryListWithOpenAI(recipeData, store_preferences, custom_name)
+          } catch (aiError) {
+            console.log("AI generation failed, creating fallback grocery list:", aiError)
+            // Create a fallback grocery list without AI
+            groceryList = {
+              list_name: custom_name || "Recipe List",
+              items: combinedIngredients.map(ingredient => ({
+                name: ingredient.name,
+                quantity: ingredient.combinedQuantity,
+                unit: ingredient.combinedUnit,
+                category: "unclassified", // Will be classified by our system
+                notes: ingredient.usageCount > 1 ? `*${ingredient.usageCount} uses` : ""
+              })),
+              total_estimated_cost: 0,
+              store_sections: []
+            }
+          }
 
     // Save grocery list to database
     const { data: savedList, error: saveError } = await supabase
@@ -344,6 +371,15 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("Grocery list generation error:", error)
+    
+    // Handle timeout specifically
+    if (error instanceof Error && error.name === 'AbortError') {
+      return NextResponse.json({ 
+        error: "Grocery list generation timed out. Please try again with fewer recipes or check your internet connection.",
+        details: "OpenAI API request exceeded 10 second timeout"
+      }, { status: 408 }) // 408 Request Timeout
+    }
+    
     return NextResponse.json({ 
       error: "Failed to generate grocery list",
       details: error instanceof Error ? error.message : "Unknown error"
