@@ -40,6 +40,9 @@ export async function updateSession(request: NextRequest) {
       request.nextUrl.pathname === "/" ||
       request.nextUrl.pathname.startsWith("/auth") ||
       request.nextUrl.pathname.startsWith("/api/auth") ||
+      request.nextUrl.pathname.startsWith("/api/upload-recipe-demo") ||
+      request.nextUrl.pathname.startsWith("/api/test-openai") ||
+      request.nextUrl.pathname.startsWith("/api/classify-ingredient") ||
       request.nextUrl.pathname === "/demo"
 
     // Redirect unauthenticated users to login for protected routes only

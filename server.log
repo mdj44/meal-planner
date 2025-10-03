@@ -1,0 +1,339 @@
+
+> my-v0-project@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.16
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1395ms
+ ✓ Compiled /middleware in 343ms (189 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ○ Compiling / ...
+ ✓ Compiled / in 1278ms (591 modules)
+ GET / 200 in 1402ms
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (114kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ○ Compiling /auth/sign-up ...
+ ✓ Compiled /auth/sign-up in 509ms (769 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET / 200 in 65ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET / 200 in 23ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET / 200 in 20ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET / 200 in 16ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled /_not-found in 180ms (654 modules)
+ GET /grocery-items 404 in 239ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 940ms (1046 modules)
+ ⨯ Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at createClient (./lib/supabase/server.ts:14:77)
+    at async DashboardPage (./app/dashboard/page.tsx:15:22)
+digest: "2778174290"
+ ⨯ Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at createClient (./lib/supabase/server.ts:14:77)
+    at async DashboardPage (./app/dashboard/page.tsx:15:22)
+digest: "2778174290"
+ GET /dashboard 500 in 1052ms
+ ✓ Compiled in 118ms (452 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled /_not-found in 161ms (1049 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 219ms (1238 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /grocery-items 404 in 32ms
+ ✓ Compiled in 97ms (454 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 187ms (1049 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /grocery-items 404 in 21ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled /demo in 413ms (855 modules)
+ GET /demo 200 in 489ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled /auth/login in 142ms (949 modules)
+ GET /auth/login 200 in 222ms
+ ✓ Compiled in 272ms (963 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /grocery-items 404 in 18ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET / 200 in 39ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled /auth/sign-up in 68ms (500 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET / 200 in 40ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 143ms (465 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 81ms (465 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 175ms (1043 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 73ms (465 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 77ms (465 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 113ms (465 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 79ms (465 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 115ms (1057 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 324ms (868 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled /recipe-extractor in 370ms (876 modules)
+ GET /recipe-extractor 200 in 436ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /demo 200 in 39ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /demo 200 in 15ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled /api/extract-recipe in 406ms (530 modules)
+Recipe extraction error: TypeError: Cannot read properties of undefined (reading 'typeName')
+    at parseDef (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2111:52)
+    at zodToJsonSchema (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2195:22)
+    at zod3Schema (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2233:5)
+    at zodSchema (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2266:12)
+    at asSchema (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2291:36)
+    at getOutputStrategy (webpack-internal:///(rsc)/./node_modules/.pnpm/ai@5.0.56_zod@3.25.67/node_modules/ai/dist/index.mjs:6746:99)
+    at generateObject (webpack-internal:///(rsc)/./node_modules/.pnpm/ai@5.0.56_zod@3.25.67/node_modules/ai/dist/index.mjs:6975:26)
+    at POST (webpack-internal:///(rsc)/./app/api/extract-recipe/route.ts:102:96)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1574:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1908:24)
+    at async DevServer.renderToResponseImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1946:32)
+    at async DevServer.pipeImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /api/extract-recipe 500 in 507ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /demo 200 in 74ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 164ms (1002 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 95ms (472 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 81ms (472 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 173ms (1177 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 226ms (1002 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 469ms (890 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 120ms (472 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 136ms (472 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 76ms (472 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 71ms (472 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 77ms (472 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 132ms (472 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 66ms (472 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 101ms (472 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 178ms (1065 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 62ms (472 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 59ms (466 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 37ms (403 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 74ms (1044 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 70ms (466 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 58ms (466 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 132ms (1058 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 319ms (869 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /demo 200 in 60ms
+ ✓ Compiled in 144ms (869 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 138ms (869 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /demo 200 in 64ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled /auth/sign-up in 147ms (495 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /demo 200 in 78ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /demo 200 in 16ms
+ ✓ Compiled in 105ms (466 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 88ms (466 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 153ms (1044 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 122ms (869 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 130ms (869 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 281ms (868 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 237ms (870 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 202ms (872 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /demo 200 in 60ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled /api/upload-recipe-demo in 82ms (518 modules)
+Recipe upload error: TypeError: Cannot read properties of undefined (reading 'typeName')
+    at parseDef (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2111:52)
+    at zodToJsonSchema (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2195:22)
+    at zod3Schema (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2233:5)
+    at zodSchema (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2266:12)
+    at asSchema (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2291:36)
+    at getOutputStrategy (webpack-internal:///(rsc)/./node_modules/.pnpm/ai@5.0.56_zod@3.25.67/node_modules/ai/dist/index.mjs:6746:99)
+    at generateObject (webpack-internal:///(rsc)/./node_modules/.pnpm/ai@5.0.56_zod@3.25.67/node_modules/ai/dist/index.mjs:6975:26)
+    at POST (webpack-internal:///(rsc)/./app/api/upload-recipe-demo/route.ts:162:102)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1574:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1908:24)
+    at async DevServer.renderToResponseImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1946:32)
+    at async DevServer.pipeImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /api/upload-recipe-demo 500 in 160ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+Recipe upload error: TypeError: Cannot read properties of undefined (reading 'typeName')
+    at parseDef (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2111:52)
+    at zodToJsonSchema (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2195:22)
+    at zod3Schema (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2233:5)
+    at zodSchema (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2266:12)
+    at asSchema (webpack-internal:///(rsc)/./node_modules/.pnpm/@ai-sdk+provider-utils@3.0.10_zod@3.25.67/node_modules/@ai-sdk/provider-utils/dist/index.mjs:2291:36)
+    at getOutputStrategy (webpack-internal:///(rsc)/./node_modules/.pnpm/ai@5.0.56_zod@3.25.67/node_modules/ai/dist/index.mjs:6746:99)
+    at generateObject (webpack-internal:///(rsc)/./node_modules/.pnpm/ai@5.0.56_zod@3.25.67/node_modules/ai/dist/index.mjs:6975:26)
+    at POST (webpack-internal:///(rsc)/./app/api/upload-recipe-demo/route.ts:162:102)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:55831
+    at async eO.execute (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46527)
+    at async eO.handle (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57165)
+    at async doRender (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1352:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1574:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1482:28)
+    at async DevServer.renderPageComponent (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1908:24)
+    at async DevServer.renderToResponseImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:1946:32)
+    at async DevServer.pipeImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:921:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/base-server.js:817:17)
+    at async /Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/lib/router-server.js:173:21)
+    at async handleRequest (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/lib/router-server.js:350:24)
+    at async requestHandlerImpl (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/lib/router-server.js:374:13)
+    at async Server.requestListener (/Users/markdejonge/meal-planner/meal-planner/node_modules/.pnpm/next@14.2.16_@opentelemetry+api@1.9.0_react-dom@18.0.0_react@18.0.0__react@18.0.0/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /api/upload-recipe-demo 500 in 4ms
+ ✓ Compiled in 139ms (902 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled in 131ms (902 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ POST /api/upload-recipe-demo 200 in 48ms
+ ✓ Compiled in 107ms (902 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /demo 200 in 77ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ GET /demo 200 in 18ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+[v0] Missing Supabase environment variables, allowing request to proceed
+ POST /api/upload-recipe-demo 200 in 22ms
+[v0] Missing Supabase environment variables, allowing request to proceed
+ ✓ Compiled /auth/sign-up in 228ms (496 modules)
+[v0] Missing Supabase environment variables, allowing request to proceed
+   Reload env: .env.local
+ ✓ Compiled in 355ms (1047 modules)
+ ✓ Compiled in 182ms (466 modules)
+ ✓ Compiled in 102ms (466 modules)
+ ✓ Compiled in 115ms (466 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (114kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+[?25h
