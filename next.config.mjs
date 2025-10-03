@@ -9,6 +9,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Ensure public assets are included
+  distDir: '.next',
 }
 
 export default nextConfig
