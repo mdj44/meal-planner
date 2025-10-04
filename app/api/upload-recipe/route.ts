@@ -328,6 +328,7 @@ export async function POST(request: NextRequest) {
             cook_time: combinedRecipe.cook_time,
             servings: combinedRecipe.servings,
             image_url: imageUrls[0], // Use first image as primary
+            image_urls: imageUrls, // Store all image URLs
             source_url: null,
             created_at: new Date().toISOString(),
           })
@@ -419,6 +420,7 @@ export async function POST(request: NextRequest) {
         cook_time: parsedRecipe.cook_time,
         servings: parsedRecipe.servings,
         image_url: imageUrl,
+        image_urls: imageUrl ? [imageUrl] : [],
         source_url: url || null,
         raw_content: content
       })
@@ -434,10 +436,10 @@ export async function POST(request: NextRequest) {
     const jsonExport = {
       id: `r${String(recipe.id).padStart(3, '0')}`,
       name: recipe.title,
-      ingredients: recipe.ingredients.map(ing => 
+      ingredients: recipe.ingredients.map((ing: any) => 
         `${ing.quantity || '1'} ${ing.unit || ''} ${ing.name}`.trim()
       ),
-      instructions: recipe.instructions.map(inst => inst.instruction),
+      instructions: recipe.instructions.map((inst: any) => inst.instruction),
       modifications: {
         // Placeholder for future modifications
         "default": "No modifications"
