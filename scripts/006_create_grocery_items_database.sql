@@ -1,7 +1,10 @@
 -- Create a comprehensive grocery items database
 -- This will store common grocery items with their categories for better classification
 
-CREATE TABLE IF NOT EXISTS grocery_items_database (
+-- Drop the table if it exists to avoid conflicts
+DROP TABLE IF EXISTS grocery_items_database CASCADE;
+
+CREATE TABLE grocery_items_database (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   category TEXT NOT NULL,
@@ -15,6 +18,22 @@ CREATE TABLE IF NOT EXISTS grocery_items_database (
 CREATE INDEX IF NOT EXISTS idx_grocery_items_database_name ON grocery_items_database(name);
 CREATE INDEX IF NOT EXISTS idx_grocery_items_database_category ON grocery_items_database(category);
 CREATE INDEX IF NOT EXISTS idx_grocery_items_database_variations ON grocery_items_database USING GIN(common_variations);
+
+-- Enable RLS
+ALTER TABLE grocery_items_database ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for the grocery items database
+CREATE POLICY "Anyone can read grocery items database" ON grocery_items_database
+  FOR SELECT USING (true);
+
+CREATE POLICY "Only authenticated users can insert grocery items" ON grocery_items_database
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Only authenticated users can update grocery items" ON grocery_items_database
+  FOR UPDATE USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Only authenticated users can delete grocery items" ON grocery_items_database
+  FOR DELETE USING (auth.role() = 'authenticated');
 
 -- Add some initial data
 INSERT INTO grocery_items_database (name, category, subcategory, common_variations) VALUES
