@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { RecipeUploadForm } from "@/components/recipe-upload-form"
 import { TestRecipeButton } from "@/components/test-recipe-button"
+import { RecipeViewer } from "@/components/recipe-viewer"
 import type { Recipe } from "@/lib/types"
 
 interface RecipesPageContentProps {
@@ -40,8 +41,6 @@ export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [isGroceryListMode, setIsGroceryListMode] = useState(false)
-  const [enlargedImageOpen, setEnlargedImageOpen] = useState(false)
-  const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null)
   const [groceryListDialogOpen, setGroceryListDialogOpen] = useState(false)
   const [groceryListName, setGroceryListName] = useState("")
   const [isCreatingGroceryList, setIsCreatingGroceryList] = useState(false)
@@ -391,26 +390,17 @@ export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) 
                 )}
                 
                 {recipe.image_url && (
-                    <div 
-                      className={`aspect-video bg-gray-200 ${!isSelectionMode ? 'cursor-pointer' : ''}`} 
-                      onClick={(e) => {
-                        if (!isSelectionMode) {
-                          e.stopPropagation()
-                          setEnlargedImageUrl(recipe.image_url!)
-                          setEnlargedImageOpen(true)
-                        }
-                      }}
-                    >
+                    <div className="aspect-video bg-gray-200">
                       <img
                         src={recipe.image_url || "/placeholder.svg"}
                         alt={recipe.title}
-                        className={`w-full h-full object-cover transition-opacity ${!isSelectionMode ? 'hover:opacity-90' : ''}`}
+                        className="w-full h-full object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = "none"
                         }}
                       />
                     </div>
-                  )}
+                )}
                   <CardHeader>
                   <CardTitle className="line-clamp-2 flex items-start gap-2">
                     <span className={recipe.is_modified ? "text-blue-600" : ""}>
@@ -546,106 +536,12 @@ export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) 
           </div>
         )}
 
-        {/* Recipe View Dialog */}
-        {viewDialogOpen && (
-          <Dialog open={!!viewDialogOpen} onOpenChange={(open) => setViewDialogOpen(open ? viewDialogOpen : null)}>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-              {(() => {
-                const recipe = recipes.find(r => r.id === viewDialogOpen)
-                if (!recipe) return null
-                
-                return (
-                  <>
-                    <DialogHeader>
-                      <DialogTitle className="text-2xl">{recipe.title}</DialogTitle>
-                      {recipe.description && (
-                        <DialogDescription className="text-base">{recipe.description}</DialogDescription>
-                      )}
-                    </DialogHeader>
-                    
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {/* Recipe Info */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          {recipe.prep_time && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              {recipe.prep_time}m prep
-                            </div>
-                          )}
-                          {recipe.cook_time && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              {recipe.cook_time}m cook
-                            </div>
-                          )}
-                          {recipe.servings && (
-                            <div className="flex items-center gap-1">
-                              <Users className="h-4 w-4" />
-                              {recipe.servings} servings
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Ingredients */}
-                        <div>
-                          <h3 className="text-lg font-semibold mb-3">Ingredients</h3>
-                          <ul className="space-y-2">
-                            {recipe.ingredients.map((ingredient, index) => (
-                              <li key={index} className="flex items-start">
-                                <span className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                                <span>
-                                  {ingredient.quantity && ingredient.unit 
-                                    ? `${ingredient.quantity} ${ingredient.unit} ${ingredient.name}`
-                                    : ingredient.quantity 
-                                    ? `${ingredient.quantity} ${ingredient.name}`
-                                    : ingredient.name
-                                  }
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-
-                      {/* Instructions */}
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3">Instructions</h3>
-                        <ol className="space-y-3">
-                          {recipe.instructions.map((instruction, index) => (
-                            <li key={index} className="flex items-start">
-                              <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium mr-3 flex-shrink-0 mt-0.5">
-                                {instruction.step || index + 1}
-                              </span>
-                              <span className="text-sm leading-relaxed">
-                                {instruction.instruction}
-                              </span>
-                            </li>
-                          ))}
-                        </ol>
-                      </div>
-                    </div>
-
-                    {/* Recipe Image */}
-                    {recipe.image_url && (
-                      <div className="mt-4">
-                        <img 
-                          src={recipe.image_url} 
-                          alt={recipe.title}
-                          className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => {
-                            setEnlargedImageUrl(recipe.image_url!)
-                            setEnlargedImageOpen(true)
-                          }}
-                        />
-                      </div>
-                    )}
-                  </>
-                )
-              })()}
-            </DialogContent>
-          </Dialog>
-        )}
+        {/* Recipe Viewer */}
+        <RecipeViewer 
+          recipe={recipes.find(r => r.id === viewDialogOpen) || null}
+          isOpen={!!viewDialogOpen}
+          onClose={() => setViewDialogOpen(null)}
+        />
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -685,27 +581,6 @@ export function RecipesPageContent({ initialRecipes }: RecipesPageContentProps) 
           </DialogContent>
         </Dialog>
 
-        {/* Enlarged Image Dialog */}
-        <Dialog open={enlargedImageOpen} onOpenChange={setEnlargedImageOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] p-2">
-            <DialogHeader className="sr-only">
-              <DialogTitle>Recipe Image</DialogTitle>
-            </DialogHeader>
-            {enlargedImageUrl && (
-              <div className="flex items-center justify-center">
-                <img
-                  src={enlargedImageUrl}
-                  alt="Enlarged recipe"
-                  className="max-w-full max-h-[80vh] object-contain rounded-lg"
-                  onClick={() => setEnlargedImageOpen(false)}
-                />
-              </div>
-            )}
-            <p className="text-center text-sm text-muted-foreground mt-2">
-              Click image to close
-            </p>
-          </DialogContent>
-        </Dialog>
 
         {/* Grocery List Creation Dialog */}
         <Dialog open={groceryListDialogOpen} onOpenChange={setGroceryListDialogOpen}>

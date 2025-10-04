@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Upload, Link, Type, Loader2, Download } from "lucide-react"
+import type { Recipe } from "@/lib/types"
 
 // Image compression utility with aggressive compression for OpenAI token limits
 function compressImage(file: File, maxWidth: number = 800, quality: number = 0.6): Promise<File> {
@@ -57,18 +58,6 @@ function estimateTokenCount(file: File): number {
   const estimatedBase64Size = file.size * 1.33
   const estimatedTokens = estimatedBase64Size / 4
   return estimatedTokens
-}
-
-interface Recipe {
-  id: string
-  title: string
-  description: string
-  ingredients: Array<{ name: string; quantity?: string; unit?: string }>
-  instructions: Array<{ step: number; instruction: string }>
-  prep_time?: number
-  cook_time?: number
-  servings?: number
-  image_url?: string
 }
 
 interface RecipeUploadFormProps {
