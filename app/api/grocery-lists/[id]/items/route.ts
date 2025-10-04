@@ -153,7 +153,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       : 0
 
     // Get smart positioning data
-    const [{ data: existingItemPositions }, { data: categoryPositions }, { data: allExistingItems }] = await Promise.all([
+    const [{ data: existingItemPositions }, { data: categoryPositions }, { data: sameCategoryItems }] = await Promise.all([
       supabase
         .from("grocery_items")
         .select("name, position_x, position_y, store_id")
@@ -169,19 +169,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       supabase
         .from("grocery_items")
         .select("name, position_x, position_y, store_id")
+        .eq("category", finalCategory || "unclassified")
         .not("position_x", "is", null)
         .not("position_y", "is", null)
+        .neq("name", name.trim()) // Not the same item
+        .limit(5)
     ])
-
-    // Look for existing items of the same category that are already positioned
-    const sameCategoryItems = allExistingItems?.filter(ei => 
-      ei.name.toLowerCase() !== name.trim().toLowerCase() && // Not the same item
-      ei.name.toLowerCase().includes((finalCategory || "unclassified").toLowerCase()) || // Category in name
-      (finalCategory === 'produce' && ['garlic', 'tomato', 'onion', 'pepper', 'lettuce'].some(prod => ei.name.toLowerCase().includes(prod))) ||
-      (finalCategory === 'pantry' && ['rice', 'pasta', 'oil', 'salt', 'sugar', 'flour'].some(pantry => ei.name.toLowerCase().includes(pantry))) ||
-      (finalCategory === 'meat' && ['chicken', 'beef', 'pork', 'fish'].some(meat => ei.name.toLowerCase().includes(meat))) ||
-      (finalCategory === 'dairy' && ['milk', 'cheese', 'butter', 'yogurt'].some(dairy => ei.name.toLowerCase().includes(dairy)))
-    )
 
     // Determine position and store_id
     let position_x = null

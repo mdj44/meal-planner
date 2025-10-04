@@ -353,14 +353,15 @@ export async function POST(request: NextRequest) {
             )
 
             // Look for existing items of the same category that are already positioned
-            const sameCategoryItems = existingItems?.filter(ei => 
-              ei.name.toLowerCase() !== item.name.toLowerCase() && // Not the same item
-              ei.name.toLowerCase().includes(item.category.toLowerCase()) || // Category in name
-              item.category === 'produce' && ['garlic', 'tomato', 'onion', 'pepper', 'lettuce'].some(prod => ei.name.toLowerCase().includes(prod)) ||
-              item.category === 'pantry' && ['rice', 'pasta', 'oil', 'salt', 'sugar', 'flour'].some(pantry => ei.name.toLowerCase().includes(pantry)) ||
-              item.category === 'meat' && ['chicken', 'beef', 'pork', 'fish'].some(meat => ei.name.toLowerCase().includes(meat)) ||
-              item.category === 'dairy' && ['milk', 'cheese', 'butter', 'yogurt'].some(dairy => ei.name.toLowerCase().includes(dairy))
-            )
+            // First, get all items with the same category from the database
+            const { data: sameCategoryItems } = await supabase
+              .from("grocery_items")
+              .select("name, position_x, position_y, store_id")
+              .eq("category", item.category)
+              .not("position_x", "is", null)
+              .not("position_y", "is", null)
+              .neq("name", item.name) // Not the same item
+              .limit(5) // Limit to avoid too many results
 
             // Determine position and store_id
             let position_x = null
