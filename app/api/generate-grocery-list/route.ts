@@ -12,39 +12,130 @@ const MIN_GROCERY_REQUEST_INTERVAL = 3000 // 3 seconds between grocery list requ
 
 // Basic ingredient classification for fallback
 const BASIC_INGREDIENTS: Record<string, string> = {
+  // Bread & Bakery
   'pita bread': 'bakery',
+  'bread': 'bakery',
+  'pita': 'bakery',
+  'naan': 'bakery',
+  'tortilla': 'bakery',
+  
+  // Grains & Pantry
   'white rice': 'pantry',
   'brown rice': 'pantry',
+  'rice': 'pantry',
+  'pasta': 'pantry',
+  'spaghetti': 'pantry',
   'olive oil': 'pantry',
+  'vegetable oil': 'pantry',
+  'canola oil': 'pantry',
   'salt': 'pantry',
   'black pepper': 'pantry',
   'pepper': 'pantry',
+  'chickpeas': 'pantry',
+  'garbanzo beans': 'pantry',
+  'white wine vinegar': 'pantry',
+  'vinegar': 'pantry',
+  'sugar': 'pantry',
+  'oil': 'pantry',
+  'flour': 'pantry',
+  'baking powder': 'pantry',
+  'baking soda': 'pantry',
+  'spices': 'pantry',
+  'cumin': 'pantry',
+  'paprika': 'pantry',
+  'oregano': 'pantry',
+  'basil': 'pantry',
+  'thyme': 'pantry',
+  
+  // Produce
   'garlic': 'produce',
   'onion': 'produce',
+  'onions': 'produce',
   'tomato': 'produce',
   'tomatoes': 'produce',
   'baby tomatoes': 'produce',
+  'cherry tomatoes': 'produce',
+  'parsley': 'produce',
+  'cilantro': 'produce',
+  'bell pepper': 'produce',
+  'sweet bell pepper': 'produce',
+  'red bell pepper': 'produce',
+  'green bell pepper': 'produce',
+  'olives': 'produce',
+  'mixed olives': 'produce',
+  'lettuce': 'produce',
+  'spinach': 'produce',
+  'carrots': 'produce',
+  'carrot': 'produce',
+  'celery': 'produce',
+  'cucumber': 'produce',
+  'lemon': 'produce',
+  'lime': 'produce',
+  'potato': 'produce',
+  'potatoes': 'produce',
+  
+  // Meat
   'chicken breast': 'meat',
+  'chicken': 'meat',
   'ground beef': 'meat',
+  'beef': 'meat',
+  'pork': 'meat',
+  'bacon': 'meat',
+  'sausage': 'meat',
+  'fish': 'meat',
+  'salmon': 'meat',
+  'tuna': 'meat',
+  
+  // Dairy
   'milk': 'dairy',
   'eggs': 'dairy',
+  'egg': 'dairy',
   'butter': 'dairy',
   'cheese': 'dairy',
   'feta cheese': 'dairy',
-  'parsley': 'produce',
-  'bell pepper': 'produce',
-  'sweet bell pepper': 'produce',
-  'olives': 'produce',
-  'mixed olives': 'produce',
-  'chickpeas': 'pantry',
-  'white wine vinegar': 'pantry',
-  'sugar': 'pantry',
-  'oil': 'pantry'
+  'feta': 'dairy',
+  'cheddar cheese': 'dairy',
+  'mozzarella': 'dairy',
+  'parmesan': 'dairy',
+  'yogurt': 'dairy',
+  'sour cream': 'dairy',
+  'cream cheese': 'dairy'
 }
 
 function classifyIngredientBasic(name: string): string {
   const normalizedName = name.toLowerCase().trim()
-  return BASIC_INGREDIENTS[normalizedName] || 'unclassified'
+  
+  // First try exact match
+  if (BASIC_INGREDIENTS[normalizedName]) {
+    return BASIC_INGREDIENTS[normalizedName]
+  }
+  
+  // Try partial matches for common patterns
+  for (const [ingredient, category] of Object.entries(BASIC_INGREDIENTS)) {
+    if (normalizedName.includes(ingredient) || ingredient.includes(normalizedName)) {
+      return category
+    }
+  }
+  
+  // Try keyword-based classification
+  if (normalizedName.includes('chicken') || normalizedName.includes('beef') || normalizedName.includes('pork') || normalizedName.includes('fish') || normalizedName.includes('meat')) {
+    return 'meat'
+  }
+  if (normalizedName.includes('milk') || normalizedName.includes('cheese') || normalizedName.includes('butter') || normalizedName.includes('yogurt') || normalizedName.includes('cream')) {
+    return 'dairy'
+  }
+  if (normalizedName.includes('bread') || normalizedName.includes('pita') || normalizedName.includes('naan') || normalizedName.includes('tortilla')) {
+    return 'bakery'
+  }
+  if (normalizedName.includes('oil') || normalizedName.includes('vinegar') || normalizedName.includes('salt') || normalizedName.includes('pepper') || normalizedName.includes('spice') || normalizedName.includes('rice') || normalizedName.includes('pasta')) {
+    return 'pantry'
+  }
+  if (normalizedName.includes('tomato') || normalizedName.includes('onion') || normalizedName.includes('garlic') || normalizedName.includes('pepper') || normalizedName.includes('lettuce') || normalizedName.includes('carrot') || normalizedName.includes('potato')) {
+    return 'produce'
+  }
+  
+  console.log(`Unclassified ingredient: "${name}" (normalized: "${normalizedName}")`)
+  return 'unclassified'
 }
 
 // Function to normalize ingredient names for combining
@@ -293,11 +384,15 @@ export async function POST(request: NextRequest) {
           } catch (aiError) {
             console.log("AI generation failed, creating fallback grocery list:", aiError)
             // Create a fallback grocery list without AI, but with basic classification
+            console.log("Creating fallback grocery list with basic classification...")
+            console.log("Combined ingredients:", combinedIngredients.map(i => i.name))
+            
             groceryList = {
               list_name: custom_name || "Recipe List",
               items: combinedIngredients.map(ingredient => {
                 // Use basic classification for fallback
                 const category = classifyIngredientBasic(ingredient.name)
+                console.log(`Classified "${ingredient.name}" as "${category}"`)
                 return {
                   name: ingredient.name,
                   quantity: ingredient.combinedQuantity,
