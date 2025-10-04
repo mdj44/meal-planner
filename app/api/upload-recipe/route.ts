@@ -327,8 +327,6 @@ export async function POST(request: NextRequest) {
             prep_time: combinedRecipe.prep_time,
             cook_time: combinedRecipe.cook_time,
             servings: combinedRecipe.servings,
-            cuisine: combinedRecipe.cuisine,
-            difficulty: combinedRecipe.difficulty,
             image_url: imageUrls[0], // Use first image as primary
             source_url: null,
             created_at: new Date().toISOString(),
@@ -421,11 +419,8 @@ export async function POST(request: NextRequest) {
         cook_time: parsedRecipe.cook_time,
         servings: parsedRecipe.servings,
         image_url: imageUrl,
-        image_urls: imageUrls.length > 0 ? imageUrls : (imageUrl ? [imageUrl] : []),
         source_url: url || null,
-        raw_content: content,
-        version_number: 1,
-        is_modified: false
+        raw_content: content
       })
       .select()
       .single()
