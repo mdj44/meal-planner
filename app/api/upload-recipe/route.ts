@@ -1,9 +1,22 @@
 import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
+// Simple rate limiting - track last request time
+let lastRequestTime = 0
+const MIN_REQUEST_INTERVAL = 2000 // 2 seconds between requests
+
 // Simple function to call OpenAI directly
 async function extractRecipeWithOpenAI(content: string, isImage: boolean = false) {
   try {
+    // Rate limiting - wait if we made a request too recently
+    const now = Date.now()
+    const timeSinceLastRequest = now - lastRequestTime
+    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+      const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest
+      console.log(`Rate limiting: waiting ${waitTime}ms before next request`)
+      await new Promise(resolve => setTimeout(resolve, waitTime))
+    }
+    lastRequestTime = Date.now()
     let messages: any[] = []
 
     if (isImage) {

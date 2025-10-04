@@ -6,6 +6,10 @@ import { combineQuantities } from "@/lib/quantity-utils"
 const groceryListCache = new Map<string, { data: any; timestamp: number }>()
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
+// Rate limiting - track last request time
+let lastGroceryListRequestTime = 0
+const MIN_GROCERY_REQUEST_INTERVAL = 3000 // 3 seconds between grocery list requests
+
 // Basic ingredient classification for fallback
 const BASIC_INGREDIENTS: Record<string, string> = {
   'pita bread': 'bakery',
@@ -99,6 +103,16 @@ function combineIngredients(recipeData: any[]): any[] {
 async function generateGroceryListWithOpenAI(recipeData: any[], storePreferences?: string, customName?: string) {
   try {
     console.log("Calling OpenAI for grocery list generation...")
+    
+    // Rate limiting - wait if we made a request too recently
+    const now = Date.now()
+    const timeSinceLastRequest = now - lastGroceryListRequestTime
+    if (timeSinceLastRequest < MIN_GROCERY_REQUEST_INTERVAL) {
+      const waitTime = MIN_GROCERY_REQUEST_INTERVAL - timeSinceLastRequest
+      console.log(`Rate limiting: waiting ${waitTime}ms before next grocery list request`)
+      await new Promise(resolve => setTimeout(resolve, waitTime))
+    }
+    lastGroceryListRequestTime = Date.now()
     
     // Add timeout for better performance
     const controller = new AbortController()
