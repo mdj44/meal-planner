@@ -47,11 +47,6 @@ export function RecipeViewer({ recipe, isOpen, onClose }: RecipeViewerProps) {
     ? [recipe.image_url] 
     : []
 
-  // Debug logging
-  console.log('RecipeViewer - Recipe:', recipe.title)
-  console.log('RecipeViewer - image_url:', recipe.image_url)
-  console.log('RecipeViewer - image_urls:', recipe.image_urls)
-  console.log('RecipeViewer - images array:', images)
 
   const handleImageClick = (index: number) => {
     setCurrentImageIndex(index)
@@ -162,10 +157,8 @@ export function RecipeViewer({ recipe, isOpen, onClose }: RecipeViewerProps) {
                     <img 
                       src={imageUrl} 
                       alt={`${recipe.title} - Page ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity border"
+                      className="w-full h-32 object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity border bg-gray-100"
                       onClick={() => handleImageClick(index)}
-                      onLoad={() => console.log('Image loaded:', imageUrl)}
-                      onError={(e) => console.error('Image failed to load:', imageUrl, e)}
                     />
                     {images.length > 1 && (
                       <Badge 
