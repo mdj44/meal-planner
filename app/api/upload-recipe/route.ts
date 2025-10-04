@@ -20,6 +20,66 @@ function checkImageSize(dataUrl: string): { isValid: boolean; message?: string }
   return { isValid: true }
 }
 
+// Combine results from multiple pages into a single recipe
+function combineMultiPageResults(imageResults: Array<{page: number, result: any}>): any {
+  const validResults = imageResults.filter(r => !r.result.error && r.result.title !== "Unable to extract recipe")
+  
+  if (validResults.length === 0) {
+    return {
+      title: "Multi-page Recipe - Processing Failed",
+      description: "Could not extract recipe information from any page",
+      ingredients: [],
+      instructions: [],
+      prep_time: null,
+      cook_time: null,
+      servings: null,
+      cuisine: "unknown",
+      difficulty: "unknown"
+    }
+  }
+  
+  // Use the first valid result as the base
+  const baseResult = validResults[0].result
+  
+  // Combine all ingredients (remove duplicates)
+  const allIngredients = new Map()
+  validResults.forEach(({result}) => {
+    if (result.ingredients && Array.isArray(result.ingredients)) {
+      result.ingredients.forEach((ingredient: any) => {
+        const key = ingredient.name?.toLowerCase() || ingredient
+        if (!allIngredients.has(key)) {
+          allIngredients.set(key, ingredient)
+        }
+      })
+    }
+  })
+  
+  // Combine all instructions (keep page order)
+  const allInstructions: any[] = []
+  validResults.forEach(({page, result}) => {
+    if (result.instructions && Array.isArray(result.instructions)) {
+      result.instructions.forEach((instruction: any, index: number) => {
+        allInstructions.push({
+          step: allInstructions.length + 1,
+          instruction: `Page ${page}, Step ${index + 1}: ${instruction.instruction || instruction}`
+        })
+      })
+    }
+  })
+  
+  return {
+    title: baseResult.title || "Multi-page Recipe",
+    description: `Combined recipe from ${validResults.length} pages. ${baseResult.description || ""}`,
+    ingredients: Array.from(allIngredients.values()),
+    instructions: allInstructions,
+    prep_time: baseResult.prep_time,
+    cook_time: baseResult.cook_time,
+    servings: baseResult.servings,
+    cuisine: baseResult.cuisine || "unknown",
+    difficulty: baseResult.difficulty || "unknown"
+  }
+}
+
 // Simple function to call OpenAI directly
 async function extractRecipeWithOpenAI(content: string, isImage: boolean = false) {
   try {
@@ -223,13 +283,74 @@ export async function POST(request: NextRequest) {
         fileContents.push(dataUrl)
       }
 
-      // Use the first image as primary content, but mention multiple images
-      content = fileContents[0]
-      imageUrl = imageUrls[0]
-      
-      // If multiple images, modify the prompt
+      // For multiple images, process them all and combine results
       if (fileContents.length > 1) {
-        content = `${fileContents[0]} [Note: This is image 1 of ${fileContents.length} images for this recipe. Please extract all visible recipe information.]`
+        console.log(`Processing ${fileContents.length} images for multi-page recipe...`)
+        
+        // Process each image separately
+        const imageResults = []
+        for (let i = 0; i < fileContents.length; i++) {
+          console.log(`Processing image ${i + 1} of ${fileContents.length}...`)
+          try {
+            const result = await extractRecipeWithOpenAI(fileContents[i], true)
+            imageResults.push({
+              page: i + 1,
+              result: result
+            })
+          } catch (error) {
+            console.error(`Error processing image ${i + 1}:`, error)
+            imageResults.push({
+              page: i + 1,
+              result: {
+                title: `Page ${i + 1} - Processing Error`,
+                description: "Could not extract recipe from this page",
+                ingredients: [],
+                instructions: [],
+                error: error instanceof Error ? error.message : "Unknown error"
+              }
+            })
+          }
+        }
+        
+        // Combine all results into a single recipe
+        const combinedRecipe = combineMultiPageResults(imageResults)
+        
+        // Save the combined recipe
+        const { data: recipe, error: recipeError } = await supabase
+          .from("recipes")
+          .insert({
+            user_id: user.id,
+            title: combinedRecipe.title,
+            description: combinedRecipe.description,
+            ingredients: combinedRecipe.ingredients,
+            instructions: combinedRecipe.instructions,
+            prep_time: combinedRecipe.prep_time,
+            cook_time: combinedRecipe.cook_time,
+            servings: combinedRecipe.servings,
+            cuisine: combinedRecipe.cuisine,
+            difficulty: combinedRecipe.difficulty,
+            image_url: imageUrls[0], // Use first image as primary
+            source_url: null,
+            created_at: new Date().toISOString(),
+          })
+          .select()
+          .single()
+
+        if (recipeError) {
+          console.error("Recipe save error:", recipeError)
+          return NextResponse.json({ error: "Failed to save recipe" }, { status: 500 })
+        }
+
+        return NextResponse.json({
+          message: `Successfully processed ${fileContents.length}-page recipe!`,
+          recipe: recipe,
+          json_export: combinedRecipe,
+          pages_processed: fileContents.length
+        })
+      } else {
+        // Single image - use existing logic
+        content = fileContents[0]
+        imageUrl = imageUrls[0]
       }
     } else if (file) {
       // Upload file to Supabase storage
