@@ -5,6 +5,21 @@ import { type NextRequest, NextResponse } from "next/server"
 let lastRequestTime = 0
 const MIN_REQUEST_INTERVAL = 2000 // 2 seconds between requests
 
+// Check if image is too large and provide helpful error
+function checkImageSize(dataUrl: string): { isValid: boolean; message?: string } {
+  // Rough estimate: 1MB = ~1.3 million characters in base64
+  const sizeInMB = dataUrl.length / (1.3 * 1024 * 1024)
+  
+  if (sizeInMB > 5) {
+    return {
+      isValid: false,
+      message: `Image is too large (${sizeInMB.toFixed(1)}MB). Please compress to under 5MB or use a smaller image.`
+    }
+  }
+  
+  return { isValid: true }
+}
+
 // Simple function to call OpenAI directly
 async function extractRecipeWithOpenAI(content: string, isImage: boolean = false) {
   try {
@@ -191,7 +206,15 @@ export async function POST(request: NextRequest) {
         const bytes = await currentFile.arrayBuffer()
         const buffer = Buffer.from(bytes)
         const base64Image = buffer.toString('base64')
-        fileContents.push(`data:${currentFile.type};base64,${base64Image}`)
+        const dataUrl = `data:${currentFile.type};base64,${base64Image}`
+        
+        // Check image size
+        const sizeCheck = checkImageSize(dataUrl)
+        if (!sizeCheck.isValid) {
+          return NextResponse.json({ error: sizeCheck.message }, { status: 400 })
+        }
+        
+        fileContents.push(dataUrl)
       }
 
       // Use the first image as primary content, but mention multiple images
@@ -233,7 +256,15 @@ export async function POST(request: NextRequest) {
         const bytes = await file.arrayBuffer()
         const buffer = Buffer.from(bytes)
         const base64Image = buffer.toString('base64')
-        content = `data:${file.type};base64,${base64Image}`
+        const dataUrl = `data:${file.type};base64,${base64Image}`
+        
+        // Check image size
+        const sizeCheck = checkImageSize(dataUrl)
+        if (!sizeCheck.isValid) {
+          return NextResponse.json({ error: sizeCheck.message }, { status: 400 })
+        }
+        
+        content = dataUrl
       } else {
         // For other text files, convert to text first
         content = await file.text()
