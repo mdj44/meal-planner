@@ -157,8 +157,9 @@ export function RecipeViewer({ recipe, isOpen, onClose }: RecipeViewerProps) {
                     <img 
                       src={imageUrl} 
                       alt={`${recipe.title} - Page ${index + 1}`}
-                      className="w-full h-32 object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity border bg-gray-100"
+                      className="w-full h-32 rounded-lg cursor-pointer hover:opacity-90 transition-opacity border"
                       onClick={() => handleImageClick(index)}
+                      style={{ objectFit: 'contain' }}
                     />
                     {images.length > 1 && (
                       <Badge 
