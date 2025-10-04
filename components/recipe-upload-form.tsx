@@ -11,15 +11,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Upload, Link, Type, Loader2, Download } from "lucide-react"
 
-// Image compression utility
-function compressImage(file: File, maxWidth: number = 1024, quality: number = 0.8): Promise<File> {
+// Image compression utility with aggressive compression for OpenAI token limits
+function compressImage(file: File, maxWidth: number = 800, quality: number = 0.6): Promise<File> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
     const img = new Image()
     
     img.onload = () => {
-      // Calculate new dimensions
+      // Calculate new dimensions - more aggressive resizing
       let { width, height } = img
       if (width > maxWidth) {
         height = (height * maxWidth) / width
@@ -48,6 +48,15 @@ function compressImage(file: File, maxWidth: number = 1024, quality: number = 0.
     img.onerror = () => reject(new Error('Failed to load image'))
     img.src = URL.createObjectURL(file)
   })
+}
+
+// Check if compressed image is still too large for OpenAI
+function estimateTokenCount(file: File): number {
+  // Rough estimate: 1 token ≈ 4 characters, base64 is ~1.33x original size
+  // For images, we estimate based on file size
+  const estimatedBase64Size = file.size * 1.33
+  const estimatedTokens = estimatedBase64Size / 4
+  return estimatedTokens
 }
 
 interface Recipe {
@@ -122,10 +131,23 @@ export function RecipeUploadForm({ onRecipeUploaded }: RecipeUploadFormProps) {
       // Compress images if they're too large
       const compressedFiles: File[] = []
       for (const file of Array.from(files)) {
-        if (file.type.startsWith('image/') && file.size > 5 * 1024 * 1024) { // 5MB
-          setSuccess("Compressing large image...")
-          const compressedFile = await compressImage(file, 1024, 0.7)
-          compressedFiles.push(compressedFile)
+        if (file.type.startsWith('image/')) {
+          let processedFile = file
+          
+          // First compression if file is large
+          if (file.size > 2 * 1024 * 1024) { // 2MB
+            setSuccess("Compressing image...")
+            processedFile = await compressImage(file, 800, 0.6)
+          }
+          
+          // Check if still too large for OpenAI tokens (rough estimate)
+          const estimatedTokens = estimateTokenCount(processedFile)
+          if (estimatedTokens > 100000) { // Leave some buffer under 128k limit
+            setSuccess("Further compressing for OpenAI compatibility...")
+            processedFile = await compressImage(processedFile, 600, 0.5)
+          }
+          
+          compressedFiles.push(processedFile)
         } else {
           compressedFiles.push(file)
         }

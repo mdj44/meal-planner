@@ -128,10 +128,16 @@ async function extractRecipeWithOpenAI(content: string, isImage: boolean = false
         error_details: content_text
       }
     }
-  } catch (error) {
-    console.error("OpenAI extraction error:", error)
-    throw error
-  }
+    } catch (error) {
+      console.error("OpenAI extraction error:", error)
+      
+      // If it's a token limit error, provide a helpful message
+      if (error instanceof Error && error.message.includes("maximum context length")) {
+        throw new Error("Image is too large for processing. Please try a smaller image or use text input instead.")
+      }
+      
+      throw error
+    }
 }
 
 export async function POST(request: NextRequest) {
