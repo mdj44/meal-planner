@@ -102,6 +102,26 @@ const BASIC_INGREDIENTS: Record<string, string> = {
   'cream cheese': 'dairy'
 }
 
+async function classifyIngredientWithDatabase(name: string, supabase: any): Promise<string> {
+  const normalizedName = name.toLowerCase().trim()
+  
+  try {
+    // Try to find in the grocery items database
+    const { data: dbResult } = await supabase
+      .rpc('find_grocery_item', { item_name: normalizedName })
+    
+    if (dbResult && dbResult.length > 0) {
+      console.log(`Found in database: "${name}" → "${dbResult[0].category}"`)
+      return dbResult[0].category
+    }
+  } catch (error) {
+    console.log(`Database lookup failed for "${name}":`, error)
+  }
+  
+  // Fallback to basic classification
+  return classifyIngredientBasic(name)
+}
+
 function classifyIngredientBasic(name: string): string {
   const normalizedName = name.toLowerCase().trim()
   
@@ -387,11 +407,10 @@ export async function POST(request: NextRequest) {
             console.log("Creating fallback grocery list with basic classification...")
             console.log("Combined ingredients:", combinedIngredients.map(i => i.name))
             
-            groceryList = {
-              list_name: custom_name || "Recipe List",
-              items: combinedIngredients.map(ingredient => {
-                // Use basic classification for fallback
-                const category = classifyIngredientBasic(ingredient.name)
+            // Classify ingredients using database
+            const classifiedItems = await Promise.all(
+              combinedIngredients.map(async (ingredient) => {
+                const category = await classifyIngredientWithDatabase(ingredient.name, supabase)
                 console.log(`Classified "${ingredient.name}" as "${category}"`)
                 return {
                   name: ingredient.name,
@@ -400,7 +419,12 @@ export async function POST(request: NextRequest) {
                   category: category,
                   notes: ingredient.usageCount > 1 ? `*${ingredient.usageCount} uses` : ""
                 }
-              }),
+              })
+            )
+            
+            groceryList = {
+              list_name: custom_name || "Recipe List",
+              items: classifiedItems,
               total_estimated_cost: 0,
               store_sections: []
             }
