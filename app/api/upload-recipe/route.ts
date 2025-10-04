@@ -5,15 +5,15 @@ import { type NextRequest, NextResponse } from "next/server"
 let lastRequestTime = 0
 const MIN_REQUEST_INTERVAL = 2000 // 2 seconds between requests
 
-// Check if image is too large and provide helpful error
+// Check if image is too large and provide helpful error (fallback for non-compressed images)
 function checkImageSize(dataUrl: string): { isValid: boolean; message?: string } {
   // Rough estimate: 1MB = ~1.3 million characters in base64
   const sizeInMB = dataUrl.length / (1.3 * 1024 * 1024)
   
-  if (sizeInMB > 5) {
+  if (sizeInMB > 10) { // Increased limit since client-side compression should handle most cases
     return {
       isValid: false,
-      message: `Image is too large (${sizeInMB.toFixed(1)}MB). Please compress to under 5MB or use a smaller image.`
+      message: `Image is too large (${sizeInMB.toFixed(1)}MB). Please use a smaller image or try again.`
     }
   }
   

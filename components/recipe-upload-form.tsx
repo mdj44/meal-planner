@@ -11,6 +11,45 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Upload, Link, Type, Loader2, Download } from "lucide-react"
 
+// Image compression utility
+function compressImage(file: File, maxWidth: number = 1024, quality: number = 0.8): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+    
+    img.onload = () => {
+      // Calculate new dimensions
+      let { width, height } = img
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width
+        width = maxWidth
+      }
+      
+      canvas.width = width
+      canvas.height = height
+      
+      // Draw and compress
+      ctx?.drawImage(img, 0, 0, width, height)
+      
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const compressedFile = new File([blob], file.name, {
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          })
+          resolve(compressedFile)
+        } else {
+          reject(new Error('Failed to compress image'))
+        }
+      }, 'image/jpeg', quality)
+    }
+    
+    img.onerror = () => reject(new Error('Failed to load image'))
+    img.src = URL.createObjectURL(file)
+  })
+}
+
 interface Recipe {
   id: string
   title: string
@@ -66,22 +105,62 @@ export function RecipeUploadForm({ onRecipeUploaded }: RecipeUploadFormProps) {
 
   const handleFileUpload = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData()
-    const fileInput = e.currentTarget.querySelector('input[type="file"]') as HTMLInputElement
-    const files = fileInput.files
-    
-    if (!files || files.length === 0) {
-      setError("Please select at least one image file")
-      return
+    setIsLoading(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const formData = new FormData()
+      const fileInput = e.currentTarget.querySelector('input[type="file"]') as HTMLInputElement
+      const files = fileInput.files
+      
+      if (!files || files.length === 0) {
+        setError("Please select at least one image file")
+        return
+      }
+
+      // Compress images if they're too large
+      const compressedFiles: File[] = []
+      for (const file of Array.from(files)) {
+        if (file.type.startsWith('image/') && file.size > 5 * 1024 * 1024) { // 5MB
+          setSuccess("Compressing large image...")
+          const compressedFile = await compressImage(file, 1024, 0.7)
+          compressedFiles.push(compressedFile)
+        } else {
+          compressedFiles.push(file)
+        }
+      }
+
+      // Add all files (compressed or original)
+      compressedFiles.forEach((file, index) => {
+        formData.append(`file_${index}`, file)
+      })
+      formData.append("file_count", compressedFiles.length.toString())
+
+      // Submit the form data
+      const response = await fetch("/api/upload-recipe", {
+        method: "POST",
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        const errorMessage = data.details ? `${data.error}: ${data.details}` : data.error || "Failed to upload recipe"
+        throw new Error(errorMessage)
+      }
+
+      setSuccess(data.message || "Recipe uploaded and parsed successfully!")
+      setJsonExport(data.json_export)
+      onRecipeUploaded?.(data.recipe)
+
+      const forms = document.querySelectorAll("form")
+      forms.forEach((form) => form.reset())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to process images")
+    } finally {
+      setIsLoading(false)
     }
-
-    // Add all selected files
-    Array.from(files).forEach((file, index) => {
-      formData.append(`file_${index}`, file)
-    })
-    formData.append("file_count", files.length.toString())
-
-    await handleSubmit(formData)
   }
 
   const handleUrlUpload = async (e: React.FormEvent<HTMLFormElement>) => {
