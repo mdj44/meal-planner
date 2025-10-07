@@ -5,6 +5,108 @@ import { type NextRequest, NextResponse } from "next/server"
 let lastRequestTime = 0
 const MIN_REQUEST_INTERVAL = 2000 // 2 seconds between requests
 
+// Extract recipe data from cleaned text content
+function extractRecipeFromText(text: string): any {
+  const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  
+  let title = 'Recipe from URL';
+  let description = '';
+  let ingredients: any[] = [];
+  let instructions: any[] = [];
+  let prep_time: number | null = null;
+  let cook_time: number | null = null;
+  let servings: number | null = null;
+  
+  // Extract title (look for common patterns)
+  for (const line of lines) {
+    if (line.length > 10 && line.length < 100 && 
+        !line.toLowerCase().includes('ingredient') && 
+        !line.toLowerCase().includes('instruction') &&
+        !line.toLowerCase().includes('prep') &&
+        !line.toLowerCase().includes('cook')) {
+      title = line;
+      break;
+    }
+  }
+  
+  // Extract ingredients
+  let inIngredients = false;
+  let inInstructions = false;
+  
+  for (const line of lines) {
+    const lowerLine = line.toLowerCase();
+    
+    if (lowerLine.includes('ingredient') && !inInstructions) {
+      inIngredients = true;
+      inInstructions = false;
+      continue;
+    }
+    
+    if (lowerLine.includes('instruction') || lowerLine.includes('direction') || lowerLine.includes('step')) {
+      inInstructions = true;
+      inIngredients = false;
+      continue;
+    }
+    
+    if (inIngredients && line.length > 0) {
+      // Parse ingredient line
+      const match = line.match(/^(\d+(?:\/\d+)?\s*(?:cups?|tbsp|tsp|oz|lbs?|g|kg|ml|l|pieces?|slices?)?\s*)?(.+)$/i);
+      if (match) {
+        const quantity = match[1]?.trim() || '1';
+        const name = match[2].trim();
+        ingredients.push({
+          name: name,
+          quantity: quantity,
+          unit: ''
+        });
+      }
+    }
+    
+    if (inInstructions && line.length > 0) {
+      // Parse instruction line
+      const stepMatch = line.match(/^(\d+)[\.\)]\s*(.+)$/);
+      if (stepMatch) {
+        instructions.push({
+          step: parseInt(stepMatch[1]),
+          instruction: stepMatch[2].trim()
+        });
+      } else if (line.length > 10) {
+        instructions.push({
+          step: instructions.length + 1,
+          instruction: line
+        });
+      }
+    }
+    
+    // Extract timing information
+    const timeMatch = line.match(/(\d+)\s*(?:min|minutes?|hr|hour|hours?)/i);
+    if (timeMatch) {
+      const time = parseInt(timeMatch[1]);
+      if (lowerLine.includes('prep')) {
+        prep_time = time;
+      } else if (lowerLine.includes('cook') || lowerLine.includes('bake')) {
+        cook_time = time;
+      }
+    }
+    
+    // Extract servings
+    const servingsMatch = line.match(/(\d+)\s*(?:serving|people|portions?)/i);
+    if (servingsMatch) {
+      servings = parseInt(servingsMatch[1]);
+    }
+  }
+  
+  return {
+    title,
+    description,
+    ingredients,
+    instructions,
+    prep_time,
+    cook_time,
+    servings
+  };
+}
+
 // Check if image is too large and provide helpful error (fallback for non-compressed images)
 function checkImageSize(dataUrl: string): { isValid: boolean; message?: string } {
   // Rough estimate: 1MB = ~1.3 million characters in base64
@@ -396,7 +498,68 @@ export async function POST(request: NextRequest) {
         content = await file.text()
       }
     } else if (url) {
-      content = `Please extract the recipe from this URL: ${url}`
+      // Fetch and parse the webpage content
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; RecipeExtractor/1.0)',
+          },
+          signal: AbortSignal.timeout(15000), // 15 second timeout
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch URL: ${response.status}`);
+        }
+        
+        const html = await response.text();
+        
+        // Clean HTML content
+        const cleanedContent = html
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+          .replace(/<[^>]*>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        
+        // Extract recipe content using simple regex patterns
+        const recipeData = extractRecipeFromText(cleanedContent);
+        
+        // Save recipe directly to database
+        const { data: recipe, error: dbError } = await supabase
+          .from("recipes")
+          .insert({
+            user_id: user.id,
+            title: recipeData.title || 'Recipe from URL',
+            description: recipeData.description || `Recipe extracted from ${url}`,
+            ingredients: recipeData.ingredients || [],
+            instructions: recipeData.instructions || [],
+            prep_time: recipeData.prep_time,
+            cook_time: recipeData.cook_time,
+            servings: recipeData.servings,
+            image_url: null,
+            image_urls: [],
+            source_url: url,
+            created_at: new Date().toISOString(),
+          })
+          .select()
+          .single()
+
+        if (dbError) {
+          console.error("Database error:", dbError)
+          return NextResponse.json({ error: "Failed to save recipe" }, { status: 500 })
+        }
+
+        return NextResponse.json({
+          message: "Recipe URL processed successfully!",
+          recipe: recipe,
+        })
+        
+      } catch (error) {
+        console.error("URL processing error:", error);
+        return NextResponse.json({ 
+          error: `Failed to process URL: ${error instanceof Error ? error.message : 'Unknown error'}` 
+        }, { status: 500 });
+      }
     } else if (text) {
       content = text
     } else {
