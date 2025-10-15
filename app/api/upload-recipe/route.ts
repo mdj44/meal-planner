@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { type NextRequest, NextResponse } from "next/server"
 
 // Simple rate limiting - track last request time
@@ -304,15 +305,44 @@ async function extractRecipeWithOpenAI(content: string, isImage: boolean = false
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    console.log("Upload recipe request received")
+    
+    // Get authorization header
+    const authHeader = request.headers.get('authorization')
+    console.log("Authorization header:", authHeader ? "Present" : "Missing")
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log("No valid authorization header found")
+      return NextResponse.json({ error: "No authorization token provided" }, { status: 401 })
+    }
 
-    // Check authentication
+    const token = authHeader.replace('Bearer ', '')
+    console.log("Token received:", token.substring(0, 20) + "...")
+
+    // Create a Supabase client with the JWT token for database operations
+    const supabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      }
+    )
+    
+    // Verify the JWT token
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser(token)
+    
+    console.log("Auth check - User:", user ? "Found" : "Not found", "Error:", authError?.message || "None")
+    
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      console.log("Authentication failed:", authError?.message)
+      return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 })
     }
 
     const formData = await request.formData()
@@ -500,20 +530,109 @@ export async function POST(request: NextRequest) {
     } else if (url) {
       // Fetch and parse the webpage content
       try {
+        console.log("Fetching URL:", url);
         const response = await fetch(url, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (compatible; RecipeExtractor/1.0)',
           },
-          signal: AbortSignal.timeout(15000), // 15 second timeout
+          signal: AbortSignal.timeout(30000), // 30 second timeout
         });
         
+        console.log("Response status:", response.status, response.statusText);
+        
         if (!response.ok) {
-          throw new Error(`Failed to fetch URL: ${response.status}`);
+          throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`);
         }
         
         const html = await response.text();
+        console.log("HTML length:", html.length);
         
-        // Clean HTML content
+        // For Mealime, look for embedded JSON data in script tags
+        let recipeJsonData = null;
+        
+        // Look for common patterns where recipe data might be embedded
+        const scriptMatches = html.match(/<script[^>]*>[\s\S]*?<\/script>/gi) || [];
+        console.log(`Found ${scriptMatches.length} script tags`);
+        
+        // Enhanced search for Mealime-specific patterns
+        for (const script of scriptMatches) {
+          // Look for various JSON patterns that might contain recipe data
+          const patterns = [
+            // Standard recipe patterns
+            /\{[\s\S]*"ingredients"[\s\S]*\}/gi,
+            /\{[\s\S]*"instructions"[\s\S]*\}/gi,
+            /\{[\s\S]*"recipe"[\s\S]*\}/gi,
+            // Mealime-specific patterns
+            /\{[\s\S]*"steps"[\s\S]*\}/gi,
+            /\{[\s\S]*"ingredient_list"[\s\S]*\}/gi,
+            /\{[\s\S]*"instruction_list"[\s\S]*\}/gi,
+            // Look for any large JSON objects that might contain recipe data
+            /\{[\s\S]{100,}[\s\S]*\}/gi
+          ];
+          
+          for (const pattern of patterns) {
+            const jsonMatches = script.match(pattern);
+            if (jsonMatches) {
+              for (const jsonMatch of jsonMatches) {
+                try {
+                  const parsed = JSON.parse(jsonMatch);
+                  console.log("Found JSON with keys:", Object.keys(parsed));
+                  
+                  // Check if this looks like recipe data
+                  if (parsed.ingredients || parsed.instructions || parsed.recipe || 
+                      parsed.steps || parsed.ingredient_list || parsed.instruction_list ||
+                      (parsed.name && (parsed.description || parsed.ingredients))) {
+                    recipeJsonData = parsed;
+                    console.log("Using this JSON as recipe data:", recipeJsonData);
+                    break;
+                  }
+                } catch (e) {
+                  // Not valid JSON, continue
+                }
+              }
+              if (recipeJsonData) break;
+            }
+          }
+          if (recipeJsonData) break;
+        }
+        
+        // Also look for data attributes or other embedded data
+        const dataMatches = html.match(/data-[^=]*="[^"]*recipe[^"]*"/gi) || [];
+        console.log(`Found ${dataMatches.length} data attributes with 'recipe'`);
+        
+        // Look for Next.js __NEXT_DATA__ script tag
+        const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+        if (nextDataMatch) {
+          try {
+            const nextData = JSON.parse(nextDataMatch[1]);
+            console.log("Found Next.js data with keys:", Object.keys(nextData));
+            
+            // Navigate to the recipe data
+            if (nextData.props?.pageProps?.publishedRecipe) {
+              recipeJsonData = nextData.props.pageProps.publishedRecipe;
+              console.log("Using Next.js recipe data:", recipeJsonData);
+            }
+          } catch (e) {
+            console.log("Could not parse Next.js data:", e.message);
+          }
+        }
+        
+        // Look for window.__INITIAL_STATE__ or similar patterns
+        const initialStateMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*(\{[\s\S]*?\});/);
+        if (initialStateMatch && !recipeJsonData) {
+          try {
+            const initialState = JSON.parse(initialStateMatch[1]);
+            console.log("Found initial state with keys:", Object.keys(initialState));
+            if (initialState.recipe || initialState.recipes) {
+              recipeJsonData = initialState.recipe || initialState.recipes[0];
+              console.log("Using initial state as recipe data:", recipeJsonData);
+            }
+          } catch (e) {
+            console.log("Could not parse initial state");
+          }
+        }
+        
+        // Clean HTML content for fallback
         const cleanedContent = html
           .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
           .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
@@ -521,32 +640,136 @@ export async function POST(request: NextRequest) {
           .replace(/\s+/g, ' ')
           .trim();
         
-        // Extract recipe content using simple regex patterns
-        const recipeData = extractRecipeFromText(cleanedContent);
+        console.log("Cleaned content length:", cleanedContent.length);
+        console.log("Cleaned content preview:", cleanedContent.substring(0, 200) + "...");
+        
+        let recipeData;
+        
+        if (recipeJsonData) {
+          console.log("Using embedded JSON data for recipe extraction");
+          
+          // Helper function to parse ingredients from various formats
+          const parseIngredients = (ingredients) => {
+            if (!ingredients) return [];
+            if (Array.isArray(ingredients)) {
+              return ingredients.map(ing => {
+                if (typeof ing === 'string') {
+                  // Parse string ingredient like "2 cups flour"
+                  const match = ing.match(/^(\d+(?:\/\d+)?\s*(?:cups?|tbsp|tsp|oz|lbs?|g|kg|ml|l|pieces?|slices?)?\s*)?(.+)$/i);
+                  return {
+                    name: match ? match[2].trim() : ing,
+                    quantity: match ? match[1]?.trim() || '1' : '1',
+                    unit: ''
+                  };
+                }
+                // Handle Mealime line_items format
+                if (ing.ingredient_name && ing.quantity) {
+                  return {
+                    name: ing.ingredient_name,
+                    quantity: ing.quantity,
+                    unit: ''
+                  };
+                }
+                return {
+                  name: ing.name || ing.ingredient || ing.ingredient_name || ing,
+                  quantity: ing.quantity || ing.amount || '1',
+                  unit: ing.unit || ''
+                };
+              });
+            }
+            return [];
+          };
+          
+          // Helper function to parse instructions from various formats
+          const parseInstructions = (instructions) => {
+            if (!instructions) return [];
+            if (Array.isArray(instructions)) {
+              return instructions.map((inst, index) => {
+                if (typeof inst === 'string') {
+                  return {
+                    step: index + 1,
+                    instruction: inst
+                  };
+                }
+                // Handle Mealime instruction format
+                if (inst.primary_message) {
+                  return {
+                    step: index + 1,
+                    instruction: inst.primary_message + (inst.secondary_message ? ` (${inst.secondary_message})` : '')
+                  };
+                }
+                return {
+                  step: inst.step || inst.id || index + 1,
+                  instruction: inst.instruction || inst.step_text || inst.text || inst.primary_message || inst
+                };
+              });
+            }
+            return [];
+          };
+          
+          // Parse the JSON data into our recipe format
+          recipeData = {
+            title: recipeJsonData.title || recipeJsonData.name || recipeJsonData.recipe_name || 'Recipe from URL',
+            description: recipeJsonData.description || recipeJsonData.summary || `Recipe extracted from ${url}`,
+            ingredients: parseIngredients(recipeJsonData.ingredients || recipeJsonData.ingredient_list || recipeJsonData.ingredientList || recipeJsonData.line_items),
+            instructions: parseInstructions(recipeJsonData.instructions || recipeJsonData.steps || recipeJsonData.instruction_list || recipeJsonData.instructionList),
+            prep_time: recipeJsonData.prep_time || recipeJsonData.prepTime || recipeJsonData.prep_time_minutes || null,
+            cook_time: recipeJsonData.cook_time || recipeJsonData.cookTime || recipeJsonData.cook_time_minutes || recipeJsonData.cooking_minutes || null,
+            servings: recipeJsonData.servings || recipeJsonData.serving_size || recipeJsonData.serves || recipeJsonData.serving_count || null,
+            image_url: recipeJsonData.thumbnail_image_url || recipeJsonData.presentation_image_url || recipeJsonData.image_url || recipeJsonData.image || null,
+          };
+          console.log("JSON extracted recipe data:", recipeData);
+        } else {
+          console.log("No JSON data found, using AI to extract recipe from HTML content...");
+          recipeData = await extractRecipeWithOpenAI(cleanedContent, false);
+          console.log("AI extracted recipe data:", recipeData);
+        }
         
         // Save recipe directly to database
+        const recipeToInsert = {
+          user_id: user.id,
+          title: recipeData.title || 'Recipe from URL',
+          description: recipeData.description || `Recipe extracted from ${url}`,
+          ingredients: recipeData.ingredients || [],
+          instructions: recipeData.instructions || [],
+          prep_time: recipeData.prep_time,
+          cook_time: recipeData.cook_time,
+          servings: recipeData.servings,
+          image_url: recipeData.image_url || null,
+          source_url: url,
+          raw_content: cleanedContent.substring(0, 10000), // Store first 10k chars of HTML
+        };
+        
+        console.log("Inserting recipe:", JSON.stringify(recipeToInsert, null, 2));
+        console.log("User ID being used:", user.id);
+        
+        // Try inserting with explicit user ID to bypass RLS issues
         const { data: recipe, error: dbError } = await supabase
           .from("recipes")
           .insert({
-            user_id: user.id,
-            title: recipeData.title || 'Recipe from URL',
-            description: recipeData.description || `Recipe extracted from ${url}`,
-            ingredients: recipeData.ingredients || [],
-            instructions: recipeData.instructions || [],
-            prep_time: recipeData.prep_time,
-            cook_time: recipeData.cook_time,
-            servings: recipeData.servings,
-            image_url: null,
-            image_urls: [],
-            source_url: url,
-            created_at: new Date().toISOString(),
+            ...recipeToInsert,
+            user_id: user.id // Ensure we're using the verified user ID
           })
           .select()
           .single()
 
         if (dbError) {
-          console.error("Database error:", dbError)
-          return NextResponse.json({ error: "Failed to save recipe" }, { status: 500 })
+          console.error("Database error details:", {
+            message: dbError.message,
+            details: dbError.details,
+            hint: dbError.hint,
+            code: dbError.code
+          })
+          return NextResponse.json({ 
+            error: "Failed to save recipe",
+            details: dbError.message,
+            code: dbError.code,
+            hint: dbError.hint,
+            debug: {
+              user_id: user.id,
+              recipe_data: recipeToInsert
+            }
+          }, { status: 500 })
         }
 
         return NextResponse.json({
@@ -583,7 +806,6 @@ export async function POST(request: NextRequest) {
         cook_time: parsedRecipe.cook_time,
         servings: parsedRecipe.servings,
         image_url: imageUrl,
-        image_urls: imageUrl ? [imageUrl] : [],
         source_url: url || null,
         raw_content: content
       })
