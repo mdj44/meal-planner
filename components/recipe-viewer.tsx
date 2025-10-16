@@ -1,10 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Clock, Users, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Clock, Users, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, ShoppingCart, Plus } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+import { useToast } from "@/hooks/use-toast"
 
 interface Recipe {
   id: string
@@ -27,6 +30,12 @@ interface Recipe {
   created_at: string
 }
 
+interface GroceryList {
+  id: string
+  name: string
+  created_at: string
+}
+
 interface RecipeViewerProps {
   recipe: Recipe | null
   isOpen: boolean
@@ -38,6 +47,146 @@ export function RecipeViewer({ recipe, isOpen, onClose }: RecipeViewerProps) {
   const [imageViewerOpen, setImageViewerOpen] = useState(false)
   const [zoom, setZoom] = useState(1)
   const [rotation, setRotation] = useState(0)
+  const [groceryLists, setGroceryLists] = useState<GroceryList[]>([])
+  const [selectedGroceryList, setSelectedGroceryList] = useState<string>("")
+  const [addingToGroceryList, setAddingToGroceryList] = useState(false)
+  const [newGroceryListName, setNewGroceryListName] = useState("")
+  const [showCreateNewList, setShowCreateNewList] = useState(false)
+  const { toast } = useToast()
+  const supabase = createClient()
+
+  // Fetch grocery lists when dialog opens
+  useEffect(() => {
+    if (isOpen && recipe) {
+      fetchGroceryLists()
+    }
+  }, [isOpen, recipe])
+
+  const fetchGroceryLists = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: lists, error } = await supabase
+        .from('grocery_lists')
+        .select('id, name, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching grocery lists:', error)
+        return
+      }
+
+      setGroceryLists(lists || [])
+    } catch (error) {
+      console.error('Error fetching grocery lists:', error)
+    }
+  }
+
+  const createNewGroceryList = async () => {
+    if (!newGroceryListName.trim()) return
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: newList, error } = await supabase
+        .from('grocery_lists')
+        .insert({
+          name: newGroceryListName.trim(),
+          user_id: user.id,
+          recipe_ids: []
+        })
+        .select()
+        .single()
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to create grocery list",
+          variant: "destructive"
+        })
+        return
+      }
+
+      setGroceryLists(prev => [newList, ...prev])
+      setSelectedGroceryList(newList.id)
+      setNewGroceryListName("")
+      setShowCreateNewList(false)
+      
+      toast({
+        title: "Success",
+        description: `Created grocery list "${newList.name}"`
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create grocery list",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const addRecipeToGroceryList = async () => {
+    if (!recipe || !selectedGroceryList) return
+
+    setAddingToGroceryList(true)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to add ingredients to a grocery list",
+          variant: "destructive"
+        })
+        return
+      }
+
+      const response = await fetch(`/api/grocery-lists/${selectedGroceryList}/add-recipe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          recipeId: recipe.id,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        if (result.existingCount) {
+          toast({
+            title: "Already Added",
+            description: `This recipe's ingredients are already in the selected grocery list`,
+            variant: "destructive"
+          })
+        } else {
+          throw new Error(result.error || 'Failed to add ingredients to grocery list')
+        }
+        return
+      }
+
+      toast({
+        title: "Success!",
+        description: result.message
+      })
+      
+      setSelectedGroceryList("")
+    } catch (error) {
+      console.error('Error adding recipe to grocery list:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to add ingredients to grocery list',
+        variant: "destructive"
+      })
+    } finally {
+      setAddingToGroceryList(false)
+    }
+  }
 
   if (!recipe) return null
 
@@ -104,6 +253,107 @@ export function RecipeViewer({ recipe, isOpen, onClose }: RecipeViewerProps) {
                   <div className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
                     {recipe.servings} servings
+                  </div>
+                )}
+              </div>
+
+              {/* Add to Grocery List */}
+              <div className="bg-muted/50 p-4 rounded-lg border">
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  Add to Grocery List
+                </h3>
+                
+                {groceryLists.length > 0 ? (
+                  <div className="space-y-3">
+                    <Select value={selectedGroceryList} onValueChange={setSelectedGroceryList}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a grocery list..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {groceryLists.map((list) => (
+                          <SelectItem key={list.id} value={list.id}>
+                            {list.name}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="create-new" onSelect={() => setShowCreateNewList(true)}>
+                          <div className="flex items-center gap-2">
+                            <Plus className="h-4 w-4" />
+                            Create new list
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {showCreateNewList && (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          placeholder="New grocery list name..."
+                          value={newGroceryListName}
+                          onChange={(e) => setNewGroceryListName(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              createNewGroceryList()
+                            } else if (e.key === 'Escape') {
+                              setShowCreateNewList(false)
+                              setNewGroceryListName("")
+                            }
+                          }}
+                        />
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={createNewGroceryList} disabled={!newGroceryListName.trim()}>
+                            Create
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => {
+                            setShowCreateNewList(false)
+                            setNewGroceryListName("")
+                          }}>
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <Button 
+                      onClick={addRecipeToGroceryList}
+                      disabled={!selectedGroceryList || addingToGroceryList}
+                      className="w-full"
+                    >
+                      {addingToGroceryList ? (
+                        "Adding..."
+                      ) : (
+                        <>
+                          <ShoppingCart className="h-4 w-4 mr-2" />
+                          Add {recipe.ingredients.length} ingredients
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Create your first grocery list to add recipe ingredients
+                    </p>
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        placeholder="Grocery list name..."
+                        value={newGroceryListName}
+                        onChange={(e) => setNewGroceryListName(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            createNewGroceryList()
+                          }
+                        }}
+                      />
+                      <Button size="sm" onClick={createNewGroceryList} disabled={!newGroceryListName.trim()} className="w-full">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create List
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
